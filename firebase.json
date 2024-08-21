@@ -1,0 +1,50 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "falldetectionwebsite",
+          "appId": "1:1074295281685:android:4c04ce922099927216961c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "falldetectionwebsite",
+          "configurations": {
+            "android": "1:1074295281685:android:4c04ce922099927216961c",
+            "ios": "1:1074295281685:ios:5dadec3171bff28d16961c",
+            "macos": "1:1074295281685:ios:5dadec3171bff28d16961c",
+            "web": "1:1074295281685:web:0f5b79a24db3a5e816961c",
+            "windows": "1:1074295281685:web:80e62e849e681f4516961c"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      }
+    ]
+  }
+}
