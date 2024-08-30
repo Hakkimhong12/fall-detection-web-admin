@@ -18,23 +18,37 @@ class _Page6State extends State<Page6> {
   final CameraSettingAPI _cameraSettingAPI = CameraSettingAPI();
 
   final TextEditingController _cameraIdController = TextEditingController();
-  final TextEditingController _systemAdminIdController =
-      TextEditingController();
-  final TextEditingController _systemAdminNameController =
-      TextEditingController();
-  final TextEditingController _systemAdminPasswordController =
-      TextEditingController();
 
-  String? _selectedTime;
-  String? _selectedHour;
+  String? _selectedCameraId;
+  String? _fallDetectionRecordTime;
+  String? _cameraRecordTime;
+
+  List<String> _cameraIds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCameraIds();
+  }
 
   @override
   void dispose() {
     _cameraIdController.dispose();
-    _systemAdminIdController.dispose();
-    _systemAdminNameController.dispose();
-    _systemAdminPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchCameraIds() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('cameraDetails').get();
+      List<String> ids =
+          snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
+      setState(() {
+        _cameraIds = ids;
+      });
+    } catch (e) {
+      print('Error fetching camera IDS: $e');
+    }
   }
 
   List<DropdownMenuItem<String>> _getTimeDropdownItems() {
@@ -292,78 +306,33 @@ class _Page6State extends State<Page6> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   const SizedBox(height: 16),
-                                  _buildTextFieldRow(
-                                      'カメラID',
-                                      'CAM12345',
-                                      TextInputType.text,
-                                      _cameraIdController),
-                                  const SizedBox(height: 16),
                                   _buildDropdownRow(
-                                      '転倒検知録画時間',
-                                      _selectedTime,
+                                      'カメラID',
+                                      _selectedCameraId,
+                                      _cameraIds.map((id) => DropdownMenuItem(
+                                          value: id, child: Text(id))).toList(),
+                                      (String? newValue) {
+                                    setState(() {
+                                      _selectedCameraId = newValue;
+                                    });
+                                  }),
+                                  const SizedBox(height: 16),
+                                  _buildDropdownRow('転倒検知録画時間', _fallDetectionRecordTime,
                                       _getTimeDropdownItems(),
                                       (String? newValue) {
                                     setState(() {
-                                      _selectedTime = newValue;
+                                      _fallDetectionRecordTime = newValue;
                                     });
                                   }),
                                   const SizedBox(height: 16),
-                                  _buildDropdownRow(
-                                      '録画時間設定',
-                                      _selectedHour,
+                                  _buildDropdownRow('録画時間設定', _cameraRecordTime,
                                       _getHourDropdownItems(),
                                       (String? newValue) {
                                     setState(() {
-                                      _selectedHour = newValue;
+                                      _cameraRecordTime = newValue;
                                     });
                                   }),
-                                  const SizedBox(height: 16),
-                                  _buildTextFieldRow(
-                                      'システム管理者ID',
-                                      'SV201223',
-                                      TextInputType.text,
-                                      _systemAdminIdController),
-                                  const SizedBox(height: 16),
-                                  _buildTextFieldRow(
-                                      'システム管理者氏名',
-                                      '平岡淳',
-                                      TextInputType.text,
-                                      _systemAdminNameController),
-                                  const SizedBox(height: 16),
-                                  _buildTextFieldRow(
-                                      'システム管理者PASS',
-                                      '*****',
-                                      TextInputType.text,
-                                      _systemAdminPasswordController),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 50,
-                                        height: 50,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFA67B5B),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.add,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed: () {
-                                            // Handle add button press
-                                          },
-                                        ),
-                                      ),
-                                      const Text(
-                                        '  追加',
-                                        style: TextStyle(
-                                            color: Colors.black, fontSize: 20),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 30),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
@@ -421,31 +390,41 @@ class _Page6State extends State<Page6> {
         _isLoading = true; // Show loading indicator
       });
 
-      var bytes = utf8.encode(_systemAdminPasswordController.text);
-      var hashedPassword = sha256.convert(bytes).toString();
-
-      Map<String, dynamic> cameraSettings = {
-        'cameraId': _cameraIdController.text,
-        'fallDetectionRecordTime': _selectedTime,
-        'cameraRecordTime': _selectedHour,
-        'systemAdminId': _systemAdminIdController.text,
-        'systemAdminName': _systemAdminNameController.text,
-        'systemAdminPassword': hashedPassword,
-        'timestamp': FieldValue.serverTimestamp(),
-      };
-
       try {
-        DocumentReference docRef =
-            await _cameraSettingAPI.addCameraSetting(cameraSettings);
-        print('Document successfully written with ID: ${docRef.id}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings saved successfully!')),
-        );
+        // Query the Firestore to get the document ID based on the selected cameraId
+        final snapshot = await FirebaseFirestore.instance
+            .collection('cameraDetails')
+            .where('cameraId', isEqualTo: _selectedCameraId)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          // Get the document ID
+          String docId = snapshot.docs.first.id;
+
+          // Update the document in Firestore
+          await FirebaseFirestore.instance
+              .collection('cameraDetails')
+              .doc(docId)
+              .update({
+            'fallDetectionRecordTime': _fallDetectionRecordTime,
+            'cameraRecordTime': _cameraRecordTime,
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Settings updated successfully!')),
+          );
+        } else {
+          // Handle the case where no document is found
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Camera ID not found. Please check and try again.')),
+          );
+        }
       } catch (error) {
-        print('Error adding document: $error');
+        print('Error updating document: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Failed to save settings. Please try again.')),
+              content: Text('Failed to update settings. Please try again.')),
         );
       } finally {
         setState(() {

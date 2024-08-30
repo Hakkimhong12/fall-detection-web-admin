@@ -16,8 +16,10 @@ class _Page5State extends State<Page5> {
   final TextEditingController _targetNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _videoUrlController = TextEditingController();
-  final TextEditingController _loginIdController = TextEditingController();
-  final TextEditingController _loginPasswordController = TextEditingController();
+
+  // Variables to store selected dropdown values
+  String? _selectedTime;
+  String? _selectedHour;
 
   bool _isLoading = false;
 
@@ -28,8 +30,6 @@ class _Page5State extends State<Page5> {
     _targetNameController.dispose();
     _locationController.dispose();
     _videoUrlController.dispose();
-    _loginIdController.dispose();
-    _loginPasswordController.dispose();
     super.dispose();
   }
 
@@ -58,9 +58,9 @@ class _Page5State extends State<Page5> {
           'targetName': _targetNameController.text,
           'location': _locationController.text,
           'videoUrl': _videoUrlController.text,
-          'loginId': _loginIdController.text,
-          'loginPassword': _loginPasswordController.text,
           'imageUrl': imageUrl, // Include the fetched imageUrl
+          'fallDetectionRecordTime': _selectedTime, // Save the selected time duration
+          'cameraRecordTime': _selectedHour, // Save the selected hour duration
           'timestamp': FieldValue.serverTimestamp(),
         });
 
@@ -70,8 +70,10 @@ class _Page5State extends State<Page5> {
         _targetNameController.clear();
         _locationController.clear();
         _videoUrlController.clear();
-        _loginIdController.clear();
-        _loginPasswordController.clear();
+        setState(() {
+          _selectedTime = null;
+          _selectedHour = null;
+        });
 
         setState(() {
           _isLoading = false;
@@ -96,6 +98,45 @@ class _Page5State extends State<Page5> {
     }
   }
 
+  // Methods to get dropdown items
+  List<DropdownMenuItem<String>> _getTimeDropdownItems() {
+    List<DropdownMenuItem<String>> items = [];
+    final Map<String, int> options = {
+      '5s': 5,
+      '10s': 10,
+      '15minutes': 15 * 60,
+      '30minutes': 30 * 60,
+    };
+    options.forEach((key, value) {
+      items.add(DropdownMenuItem(
+        value: key,
+        child: Text(key),
+      ));
+    });
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> _getHourDropdownItems() {
+    List<DropdownMenuItem<String>> items = [];
+    final Map<String, int> options = {
+      '1hour': 1 * 3600,
+      '3hour': 3 * 3600,
+      '6hour': 6 * 3600,
+      '12hour': 12 * 3600,
+      '24hours': 24 * 3600,
+      '1week': 7 * 24 * 3600,
+      '1month': 30 * 24 * 3600,
+      '3month': 90 * 24 * 3600,
+      '6months': 180 * 24 * 3600,
+    };
+    options.forEach((key, value) {
+      items.add(DropdownMenuItem(
+        value: key,
+        child: Text(key),
+      ));
+    });
+    return items;
+  }
 
   // Sidebar Widget
   Widget _buildSidebar(BuildContext context) {
@@ -191,13 +232,33 @@ class _Page5State extends State<Page5> {
                     '動画を表示するURL', _videoUrlController, 'http://www.gcp.com/.......',
                     keyboardType: TextInputType.url),
                 const SizedBox(height: 16),
-                _buildTextField('ログインID', _loginIdController, 'AZ20I'),
-                const SizedBox(height: 16),
-                _buildTextField('ログインパスワード', _loginPasswordController, '*****',
-                    obscureText: true),
-                const SizedBox(height: 16),
                 _buildTextField('場所', _locationController, '102号室'),
                 const SizedBox(height: 16),
+
+                // Add Dropdowns here
+                _buildDropdownField(
+                  '転倒検知録画時間',
+                  _selectedTime,
+                  _getTimeDropdownItems(),
+                  (String? newValue) {
+                    setState(() {
+                      _selectedTime = newValue;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildDropdownField(
+                  '録画時間設定',
+                  _selectedHour,
+                  _getHourDropdownItems(),
+                  (String? newValue) {
+                    setState(() {
+                      _selectedHour = newValue;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+
                 _buildFormButtons(),
               ],
             ),
@@ -245,6 +306,41 @@ class _Page5State extends State<Page5> {
     );
   }
 
+  // Reusable Dropdown Field
+  Widget _buildDropdownField(String label, String? selectedValue,
+      List<DropdownMenuItem<String>> items, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          child: DropdownButtonFormField<String>(
+            value: selectedValue,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+            ),
+            items: items,
+            onChanged: onChanged,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return '$labelを選択してください';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   // Form Buttons
   Widget _buildFormButtons() {
     return Row(
@@ -258,7 +354,10 @@ class _Page5State extends State<Page5> {
           ),
           onPressed: () {
             _formKey.currentState?.reset();
-            setState(() {});
+            setState(() {
+              _selectedTime = null;
+              _selectedHour = null;
+            });
           },
           child: const Text('戻る'),
         ),

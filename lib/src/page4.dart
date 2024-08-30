@@ -398,12 +398,13 @@ class _Page4State extends State<Page4> {
                                                               email: email,
                                                               password:
                                                                   password);
+                                                  String? uid =
+                                                      userCredential.user?.uid;
 
                                                   // Create a map for the user data
                                                   Map<String, dynamic>
                                                       userData = {
-                                                    'uid': userCredential
-                                                        .user?.uid,
+                                                    'uid': uid,
                                                     'email': email,
                                                     'phone_number': phoneNumber,
                                                     'name': name,
@@ -421,6 +422,21 @@ class _Page4State extends State<Page4> {
                                                       .instance
                                                       .collection('user_acc')
                                                       .add(userData);
+                                                  
+                                                  Map<String, dynamic>
+                                                      patientData = {
+                                                    'userUid': uid,
+                                                    'imageUrl_patient':
+                                                        _imageUrl,
+                                                    'cameraId': cameraId,
+                                                    'patientName': targetName,
+                                                  };
+
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'Patient Informations')
+                                                      .add(patientData);
 
                                                   // Clear the fields after successful registration
                                                   _emailController.clear();
@@ -446,8 +462,8 @@ class _Page4State extends State<Page4> {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     const SnackBar(
-                                                        content: Text(
-                                                            '登録が完了しました')),
+                                                        content:
+                                                            Text('登録が完了しました')),
                                                   );
                                                 } catch (e) {
                                                   setState(() {
