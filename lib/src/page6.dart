@@ -13,6 +13,7 @@ class Page6 extends StatefulWidget {
 
 class _Page6State extends State<Page6> {
   bool isTextPressed = false;
+  bool _isLoading = false; // Track loading state
   final _formKey = GlobalKey<FormState>();
   final CameraSettingAPI _cameraSettingAPI = CameraSettingAPI();
 
@@ -78,348 +79,381 @@ class _Page6State extends State<Page6> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
+      body: Stack(
         children: [
-          Container(
-            width: MediaQuery.of(context).size.width > 800 ? 250 : 200,
-            padding: const EdgeInsets.all(5.0),
-            decoration: const BoxDecoration(
-              color: Color(0xFFA67B5B),
-              border: Border(
-                right: BorderSide(
-                  color: Colors.grey, // Color of the gray line
-                  width: 2.0, // Width of the gray line
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50.0),
-                GestureDetector(
-                  onTapDown: (_) {
-                    setState(() {
-                      isTextPressed = true;
-                    });
-                  },
-                  onTapUp: (_) {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                    Navigator.pushNamed(context, '/page1');
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                  },
-                  child: Text(
-                    'AIカメラ管理画面',
-                    style: TextStyle(
-                        color: isTextPressed ? Colors.black : Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.normal,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-                const SizedBox(height: 100),
-                GestureDetector(
-                  onTapDown: (_) {
-                    setState(() {
-                      isTextPressed = true;
-                    });
-                  },
-                  onTapUp: (_) {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                    Navigator.pushNamed(context, '/page2');
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                  },
-                  child: Text(
-                    'カメラの全画面表示',
-                    style: TextStyle(
-                        color: isTextPressed ? Colors.black : Colors.white,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 18,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-                const SizedBox(height: 70),
-                GestureDetector(
-                  onTapDown: (_) {
-                    setState(() {
-                      isTextPressed = true;
-                    });
-                  },
-                  onTapUp: (_) {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                    Navigator.pushNamed(context, '/page4');
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                  },
-                  child: Text(
-                    'アラートメール確認者登録',
-                    style: TextStyle(
-                        color: isTextPressed ? Colors.black : Colors.white,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 18,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-                const SizedBox(height: 50),
-                GestureDetector(
-                  onTapDown: (_) {
-                    setState(() {
-                      isTextPressed = true;
-                    });
-                  },
-                  onTapUp: (_) {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                    Navigator.pushNamed(context, '/page5');
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                  },
-                  child: Text(
-                    'アラートメール情報',
-                    style: TextStyle(
-                        color: isTextPressed ? Colors.black : Colors.white,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 18,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-                const SizedBox(height: 50.0),
-                const Text('初期設定',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18)),
-                const SizedBox(height: 50),
-                GestureDetector(
-                  onTapDown: (_) {
-                    setState(() {
-                      isTextPressed = true;
-                    });
-                  },
-                  onTapUp: (_) {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                    Navigator.pushNamed(context, '/notification');
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTextPressed = false;
-                    });
-                  },
-                  child: Text(
-                    '通知',
-                    style: TextStyle(
-                        color: isTextPressed ? Colors.black : Colors.white,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 18,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-                //const Spacer(),
-                const SizedBox(height: 150),
-                const Padding(
-                  padding: EdgeInsets.only(left: 110),
-                  child: Text(
-                    'ケアヴュー1.2',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD2B48C),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text('初期設定',
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.normal)),
+          Row(
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width > 800 ? 250 : 200,
+                padding: const EdgeInsets.all(5.0),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFA67B5B),
+                  border: Border(
+                    right: BorderSide(
+                      color: Colors.grey, // Color of the gray line
+                      width: 2.0, // Width of the gray line
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 30.0,
-                        horizontal: MediaQuery.of(context).size.width > 1000
-                            ? 350.0
-                            : 20.0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 50.0),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/page1');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        'AIカメラ管理画面',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.normal,
+                            decoration: TextDecoration.none),
                       ),
-                      child: Form(
-                        key: _formKey,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              const SizedBox(height: 16),
-                              _buildTextFieldRow('カメラID', 'CAM12345',
-                                  TextInputType.text, _cameraIdController),
-                              const SizedBox(height: 16),
-                              _buildDropdownRow('転倒検知録画時間', _selectedTime,
-                                  _getTimeDropdownItems(), (String? newValue) {
-                                setState(() {
-                                  _selectedTime = newValue;
-                                });
-                              }),
-                              const SizedBox(height: 16),
-                              _buildDropdownRow('録画時間設定', _selectedHour,
-                                  _getHourDropdownItems(), (String? newValue) {
-                                setState(() {
-                                  _selectedHour = newValue;
-                                });
-                              }),
-                              const SizedBox(height: 16),
-                              _buildTextFieldRow('システム管理者ID', 'SV201223',
-                                  TextInputType.text, _systemAdminIdController),
-                              const SizedBox(height: 16),
-                              _buildTextFieldRow(
-                                  'システム管理者氏名',
-                                  '平岡淳',
-                                  TextInputType.text,
-                                  _systemAdminNameController),
-                              const SizedBox(height: 16),
-                              _buildTextFieldRow(
-                                  'システム管理者PASS',
-                                  '*****',
-                                  TextInputType.text,
-                                  _systemAdminPasswordController),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFA67B5B),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.add,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () {
-                                        // Handle add button press
-                                      },
-                                    ),
-                                  ),
-                                  const Text(
-                                    '  追加',
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 25, horizontal: 40),
-                                      foregroundColor: Colors.black,
-                                      backgroundColor: const Color(0xFFD9C1AE),
-                                    ),
-                                    onPressed: () {
-                                      // Handle back button press
-                                    },
-                                    child: const Text('戻る'),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 25, horizontal: 40),
-                                      foregroundColor: Colors.black,
-                                      backgroundColor: const Color(0xFFD9C1AE),
-                                    ),
-                                    onPressed:
-                                        _submitCameraSettings, 
-                                    child: const Text('登録'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      )),
+                    ),
+                    const SizedBox(height: 100),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/page2');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        'カメラの全画面表示',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 70),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/page4');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        'アラートメール確認者登録',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/page5');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        'カメラ登録',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 50.0),
+                    const Text('初期設定',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
+                    const SizedBox(height: 50),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/notification');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        '通知',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 150),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 110),
+                      child: Text(
+                        'ケアヴュー1.2',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD2B48C),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text('初期設定',
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20.0,
+                                  fontWeight: FontWeight.normal)),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 30.0,
+                            horizontal: MediaQuery.of(context).size.width > 1000
+                                ? 350.0
+                                : 20.0,
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const SizedBox(height: 16),
+                                  _buildTextFieldRow(
+                                      'カメラID',
+                                      'CAM12345',
+                                      TextInputType.text,
+                                      _cameraIdController),
+                                  const SizedBox(height: 16),
+                                  _buildDropdownRow(
+                                      '転倒検知録画時間',
+                                      _selectedTime,
+                                      _getTimeDropdownItems(),
+                                      (String? newValue) {
+                                    setState(() {
+                                      _selectedTime = newValue;
+                                    });
+                                  }),
+                                  const SizedBox(height: 16),
+                                  _buildDropdownRow(
+                                      '録画時間設定',
+                                      _selectedHour,
+                                      _getHourDropdownItems(),
+                                      (String? newValue) {
+                                    setState(() {
+                                      _selectedHour = newValue;
+                                    });
+                                  }),
+                                  const SizedBox(height: 16),
+                                  _buildTextFieldRow(
+                                      'システム管理者ID',
+                                      'SV201223',
+                                      TextInputType.text,
+                                      _systemAdminIdController),
+                                  const SizedBox(height: 16),
+                                  _buildTextFieldRow(
+                                      'システム管理者氏名',
+                                      '平岡淳',
+                                      TextInputType.text,
+                                      _systemAdminNameController),
+                                  const SizedBox(height: 16),
+                                  _buildTextFieldRow(
+                                      'システム管理者PASS',
+                                      '*****',
+                                      TextInputType.text,
+                                      _systemAdminPasswordController),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 50,
+                                        height: 50,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFA67B5B),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                          ),
+                                          onPressed: () {
+                                            // Handle add button press
+                                          },
+                                        ),
+                                      ),
+                                      const Text(
+                                        '  追加',
+                                        style: TextStyle(
+                                            color: Colors.black, fontSize: 20),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 25, horizontal: 40),
+                                          foregroundColor: Colors.black,
+                                          backgroundColor:
+                                              const Color(0xFFD9C1AE),
+                                        ),
+                                        onPressed: () {
+                                          // Handle back button press
+                                        },
+                                        child: const Text('戻る'),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 25, horizontal: 40),
+                                          foregroundColor: Colors.black,
+                                          backgroundColor:
+                                              const Color(0xFFD9C1AE),
+                                        ),
+                                        onPressed: _isLoading
+                                            ? null
+                                            : _submitCameraSettings,
+                                        child: const Text('登録'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
     );
   }
 
-void _submitCameraSettings() {
-  if (_formKey.currentState!.validate()) {
-    var bytes = utf8.encode(_systemAdminPasswordController.text);
-    var hashedPassword = sha256.convert(bytes).toString();  
+  void _submitCameraSettings() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true; // Show loading indicator
+      });
 
-    Map<String, dynamic> cameraSettings = {
-      'cameraId': _cameraIdController.text,  
-      'fallDetectionRecordTime': _selectedTime, 
-      'cameraRecordTime': _selectedHour, 
-      'systemAdminId': _systemAdminIdController.text,  
-      'systemAdminName': _systemAdminNameController.text, 
-      'systemAdminPassword': hashedPassword,  
-      'timestamp': FieldValue.serverTimestamp(), 
-    };
+      var bytes = utf8.encode(_systemAdminPasswordController.text);
+      var hashedPassword = sha256.convert(bytes).toString();
 
-    _cameraSettingAPI.addCameraSetting(cameraSettings).then((docRef) {
-      print('Document successfully written with ID: ${docRef.id}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Settings saved successfully!')),
-      );
-    }).catchError((error) {
-      print('Error adding document: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save settings. Please try again.')),
-      );
-    });
+      Map<String, dynamic> cameraSettings = {
+        'cameraId': _cameraIdController.text,
+        'fallDetectionRecordTime': _selectedTime,
+        'cameraRecordTime': _selectedHour,
+        'systemAdminId': _systemAdminIdController.text,
+        'systemAdminName': _systemAdminNameController.text,
+        'systemAdminPassword': hashedPassword,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      try {
+        DocumentReference docRef =
+            await _cameraSettingAPI.addCameraSetting(cameraSettings);
+        print('Document successfully written with ID: ${docRef.id}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved successfully!')),
+        );
+      } catch (error) {
+        print('Error adding document: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Failed to save settings. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false; // Hide loading indicator
+        });
+      }
+    }
   }
-}
 
   Widget _buildDropdownRow(String label, String? selectedValue,
       List<DropdownMenuItem<String>> items, ValueChanged<String?> onChanged) {

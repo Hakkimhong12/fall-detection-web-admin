@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
+import 'dart:typed_data';
+import 'dart:ui_web';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -14,6 +18,11 @@ class _Page4State extends State<Page4> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
+  Uint8List? _selectedImage;
+  String? _imageUrl;
+  String? _fileName;
+  int _imagePickerKey = 0;
+
   final _formKey = GlobalKey<FormState>();
   String? _selectedRelationship;
   String? _selectedCategory;
@@ -23,6 +32,43 @@ class _Page4State extends State<Page4> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _cameraIdController = TextEditingController();
   final TextEditingController _targetNameController = TextEditingController();
+
+  void _pickImage() {
+    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = 'image/*'; // Accept only image files
+    uploadInput.click(); // Open the file picker
+
+    uploadInput.onChange.listen((event) {
+      final files = uploadInput.files;
+      if (files!.isNotEmpty) {
+        final reader = html.FileReader();
+
+        reader.readAsArrayBuffer(files[0]); // Read the file as an array buffer
+        reader.onLoadEnd.listen((e) {
+          setState(() {
+            _selectedImage = reader.result as Uint8List?;
+            _fileName = files[0].name; // Store the file name
+          });
+        });
+      }
+    });
+  }
+
+  Future<void> _uploadImage() async {
+    if (_selectedImage == null) return;
+    final storageRef = FirebaseStorage.instance
+        .ref()
+        .child('images/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
+    final uploadTask = storageRef.putData(_selectedImage!);
+    final snapshot = await uploadTask.whenComplete(() => {});
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+
+    setState(() {
+      _imageUrl = downloadUrl; // Store the image URL
+      _selectedImage = null;
+      _fileName = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +171,7 @@ class _Page4State extends State<Page4> {
                         });
                       },
                       child: Text(
-                        'アラートメール情報',
+                        'カメラ登録',
                         style: TextStyle(
                             color: isTextPressed ? Colors.black : Colors.white,
                             fontWeight: FontWeight.normal,
@@ -250,60 +296,37 @@ class _Page4State extends State<Page4> {
                                     false,
                                     TextInputType.emailAddress),
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    'パスワード',
-                                    _passwordController,
-                                    '********',
-                                    true,
-                                    TextInputType.text),
+                                _buildTextField('パスワード', _passwordController,
+                                    '********', true, TextInputType.text),
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    '電話番号',
-                                    _phoneController,
-                                    '03-1122-3344',
-                                    false,
-                                    TextInputType.phone),
+                                _buildTextField('電話番号', _phoneController,
+                                    '03-1122-3344', false, TextInputType.phone),
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    '氏名',
-                                    _nameController,
-                                    '山田 太郎',
-                                    false,
-                                    TextInputType.text),
+                                _buildTextField('氏名', _nameController, '山田 太郎',
+                                    false, TextInputType.text),
+                                const SizedBox(height: 16),
+                                _buildDropdownField('続柄', _selectedRelationship,
+                                    ['息子', '娘', '父親', '母親', 'その他'], (newValue) {
+                                  setState(() {
+                                    _selectedRelationship = newValue;
+                                  });
+                                }),
                                 const SizedBox(height: 16),
                                 _buildDropdownField(
-                                    '続柄',
-                                    _selectedRelationship,
-                                    ['息子', '娘', '父親', '母親', 'その他'],
+                                    '担当区分', _selectedCategory, ['家族', 'その他'],
                                     (newValue) {
-                                      setState(() {
-                                        _selectedRelationship = newValue;
-                                      });
-                                    }),
+                                  setState(() {
+                                    _selectedCategory = newValue;
+                                  });
+                                }),
                                 const SizedBox(height: 16),
-                                _buildDropdownField(
-                                    '担当区分',
-                                    _selectedCategory,
-                                    ['家族', 'その他'],
-                                    (newValue) {
-                                      setState(() {
-                                        _selectedCategory = newValue;
-                                      });
-                                    }),
+                                _buildTextField('カメラID', _cameraIdController,
+                                    'AZ101', false, TextInputType.text),
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    'カメラID',
-                                    _cameraIdController,
-                                    'AZ101',
-                                    false,
-                                    TextInputType.text),
+                                _buildTextField('対象者氏名', _targetNameController,
+                                    '山田はな', false, TextInputType.text),
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    '対象者氏名',
-                                    _targetNameController,
-                                    '山田はな',
-                                    false,
-                                    TextInputType.text),
+                                _buildImagePicker(),
                                 const SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment:
@@ -340,25 +363,32 @@ class _Page4State extends State<Page4> {
                                                 setState(() {
                                                   _isLoading = true;
                                                 });
-                                                // Process data
-                                                final email =
-                                                    _emailController.text;
-                                                final password =
-                                                    _passwordController.text;
-                                                final phoneNumber =
-                                                    _phoneController.text;
-                                                final name =
-                                                    _nameController.text;
-                                                final relationship =
-                                                    _selectedRelationship;
-                                                final category =
-                                                    _selectedCategory;
-                                                final cameraId =
-                                                    _cameraIdController.text;
-                                                final targetName =
-                                                    _targetNameController.text;
 
                                                 try {
+                                                  // Upload image if one is selected
+                                                  if (_selectedImage != null) {
+                                                    await _uploadImage();
+                                                  }
+
+                                                  // Process and save other form data
+                                                  final email =
+                                                      _emailController.text;
+                                                  final password =
+                                                      _passwordController.text;
+                                                  final phoneNumber =
+                                                      _phoneController.text;
+                                                  final name =
+                                                      _nameController.text;
+                                                  final relationship =
+                                                      _selectedRelationship;
+                                                  final category =
+                                                      _selectedCategory;
+                                                  final cameraId =
+                                                      _cameraIdController.text;
+                                                  final targetName =
+                                                      _targetNameController
+                                                          .text;
+
                                                   // Create a new user in Firebase Authentication
                                                   UserCredential
                                                       userCredential =
@@ -375,14 +405,15 @@ class _Page4State extends State<Page4> {
                                                     'uid': userCredential
                                                         .user?.uid,
                                                     'email': email,
-                                                    'phone_number':
-                                                        phoneNumber,
+                                                    'phone_number': phoneNumber,
                                                     'name': name,
                                                     'relationship':
                                                         relationship,
                                                     'category': category,
                                                     'camera_id': cameraId,
                                                     'target_name': targetName,
+                                                    'imageUrl':
+                                                        _imageUrl, // Include the uploaded image URL
                                                   };
 
                                                   // Save the data to Firestore
@@ -405,6 +436,10 @@ class _Page4State extends State<Page4> {
                                                         null;
                                                     _selectedCategory = null;
                                                     _isLoading = false;
+                                                    _selectedImage = null;
+                                                    _imageUrl = null;
+                                                    _fileName = null;
+                                                    _imagePickerKey++;
                                                   });
 
                                                   // Show a success message
@@ -412,7 +447,7 @@ class _Page4State extends State<Page4> {
                                                       .showSnackBar(
                                                     const SnackBar(
                                                         content: Text(
-                                                            'User Registered Successfully!'),),
+                                                            '登録が完了しました')),
                                                   );
                                                 } catch (e) {
                                                   setState(() {
@@ -422,7 +457,7 @@ class _Page4State extends State<Page4> {
                                                       .showSnackBar(
                                                     SnackBar(
                                                         content: Text(
-                                                            'Failed to register user: $e')),
+                                                            'エラーが発生しました。もう一度お試しください。: $e')),
                                                   );
                                                 }
                                               }
@@ -503,6 +538,41 @@ class _Page4State extends State<Page4> {
               return null;
             },
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('画像をアップロード',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            ElevatedButton(
+              key: ValueKey(_imagePickerKey), // Unique key to force rebuild
+              onPressed: _pickImage,
+              child: const Text('画像を選択'),
+            ),
+            const SizedBox(width: 16),
+            _selectedImage != null
+                ? Column(
+                    children: [
+                      Text('File selected: $_fileName'),
+                      const SizedBox(height: 10),
+                      Image.memory(
+                        _selectedImage!,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ],
+                  )
+                : const Text('画像が選択されていません'),
+          ],
         ),
       ],
     );

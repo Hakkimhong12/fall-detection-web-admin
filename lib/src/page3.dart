@@ -202,7 +202,7 @@ class _Page3State extends State<Page3> {
                     });
                   },
                   child: Text(
-                    'アラートメール情報',
+                    'カメラ登録',
                     style: TextStyle(
                         color: isTextPressed ? Colors.black : Colors.white,
                         fontWeight: FontWeight.normal,

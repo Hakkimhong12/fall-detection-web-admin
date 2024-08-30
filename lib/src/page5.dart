@@ -1,7 +1,4 @@
-import 'dart:html' as html;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Page5 extends StatefulWidget {
@@ -22,11 +19,7 @@ class _Page5State extends State<Page5> {
   final TextEditingController _loginIdController = TextEditingController();
   final TextEditingController _loginPasswordController = TextEditingController();
 
-  Uint8List? _selectedImage;
-  String? _imageUrl;
-  String? _fileName;
   bool _isLoading = false;
-  int _imagePickerKey = 0; // Key to force rebuild of the image picker
 
   @override
   void dispose() {
@@ -40,45 +33,6 @@ class _Page5State extends State<Page5> {
     super.dispose();
   }
 
-  // Method to pick an image using HTML File Input Element
-  void _pickImage() {
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = 'image/*'; // Accept only image files
-    uploadInput.click(); // Open the file picker
-
-    uploadInput.onChange.listen((event) {
-      final files = uploadInput.files;
-      if (files!.isNotEmpty) {
-        final reader = html.FileReader();
-
-        reader.readAsArrayBuffer(files[0]); // Read the file as an array buffer
-        reader.onLoadEnd.listen((e) {
-          setState(() {
-            _selectedImage = reader.result as Uint8List?;
-            _fileName = files[0].name; // Store the file name
-          });
-        });
-      }
-    });
-  }
-
-  // Method to upload the selected image to Firebase Storage
-  Future<void> _uploadImage() async {
-    if (_selectedImage == null) return;
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child('images/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
-    final uploadTask = storageRef.putData(_selectedImage!);
-    final snapshot = await uploadTask.whenComplete(() => {});
-    final downloadUrl = await snapshot.ref.getDownloadURL();
-
-    setState(() {
-      _imageUrl = downloadUrl; // Store only the valid image URL
-      _selectedImage = null;
-      _fileName = null;
-    });
-  }
-
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -86,12 +40,19 @@ class _Page5State extends State<Page5> {
       });
 
       try {
-        // Upload image if one is selected
-        if (_selectedImage != null) {
-          await _uploadImage();
+        // Fetch imageUrl from user_acc based on cameraId
+        final userDoc = await FirebaseFirestore.instance
+            .collection('user_acc')
+            .where('camera_id', isEqualTo: _cameraIdController.text)
+            .get();
+
+        String? imageUrl;
+
+        if (userDoc.docs.isNotEmpty) {
+          imageUrl = userDoc.docs.first.data()['imageUrl'] as String?;
         }
 
-        // Add data to Firestore
+        // Add data to cameraDetails collection
         await FirebaseFirestore.instance.collection('cameraDetails').add({
           'cameraId': _cameraIdController.text,
           'targetName': _targetNameController.text,
@@ -99,7 +60,7 @@ class _Page5State extends State<Page5> {
           'videoUrl': _videoUrlController.text,
           'loginId': _loginIdController.text,
           'loginPassword': _loginPasswordController.text,
-          'imageUrl': _imageUrl,
+          'imageUrl': imageUrl, // Include the fetched imageUrl
           'timestamp': FieldValue.serverTimestamp(),
         });
 
@@ -113,13 +74,7 @@ class _Page5State extends State<Page5> {
         _loginPasswordController.clear();
 
         setState(() {
-          _selectedImage = null;
-          _imageUrl = null;
-          _fileName = null;
           _isLoading = false;
-
-          // Increment key to force rebuild of the image picker
-          _imagePickerKey++;
         });
 
         // Show success message
@@ -136,15 +91,13 @@ class _Page5State extends State<Page5> {
         // Ensure loading state is reset even if an error occurs
         setState(() {
           _isLoading = false;
-          _selectedImage = null;
-          _fileName = null;
         });
       }
     }
   }
 
+
   // Sidebar Widget
- // Sidebar Widget
   Widget _buildSidebar(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -170,7 +123,7 @@ class _Page5State extends State<Page5> {
               const SizedBox(height: 70),
               _buildSidebarButton('アラートメール確認者登録', '/page4'),
               const SizedBox(height: 50.0),
-              const Text('アラートメール情報',
+              const Text('カメラ登録',
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
@@ -179,7 +132,6 @@ class _Page5State extends State<Page5> {
               _buildSidebarButton('初期設定', '/page6'),
               const SizedBox(height: 50),
               _buildSidebarButton('通知', '/notification'),
-              //const Spacer(),
               const SizedBox(height: 150),
               const Padding(
                 padding: EdgeInsets.only(left: 110),
@@ -246,8 +198,6 @@ class _Page5State extends State<Page5> {
                 const SizedBox(height: 16),
                 _buildTextField('場所', _locationController, '102号室'),
                 const SizedBox(height: 16),
-                _buildImagePicker(),
-                const SizedBox(height: 16),
                 _buildFormButtons(),
               ],
             ),
@@ -295,42 +245,6 @@ class _Page5State extends State<Page5> {
     );
   }
 
-  // Image Picker with a key to force rebuild
-  Widget _buildImagePicker() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('画像をアップロード',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            ElevatedButton(
-              key: ValueKey(_imagePickerKey), // Unique key to force rebuild
-              onPressed: _pickImage,
-              child: const Text('画像を選択'),
-            ),
-            const SizedBox(width: 16),
-            _selectedImage != null
-                ? Column(
-                    children: [
-                      Text('File selected: $_fileName'),
-                      const SizedBox(height: 10),
-                      Image.memory(
-                        _selectedImage!,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                    ],
-                  )
-                : const Text('画像が選択されていません'),
-          ],
-        ),
-      ],
-    );
-  }
-
   // Form Buttons
   Widget _buildFormButtons() {
     return Row(
@@ -344,12 +258,7 @@ class _Page5State extends State<Page5> {
           ),
           onPressed: () {
             _formKey.currentState?.reset();
-            setState(() {
-              _selectedImage = null;
-              _imageUrl = null;
-              _fileName = null;
-              _imagePickerKey++; // Increment key to force rebuild
-            });
+            setState(() {});
           },
           child: const Text('戻る'),
         ),
@@ -389,7 +298,7 @@ class _Page5State extends State<Page5> {
                             color: const Color(0xFFD9C1AE),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text('アラートメールに必要な情報',
+                          child: const Text('カメラ登録',
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 20.0,

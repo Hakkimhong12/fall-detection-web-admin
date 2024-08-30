@@ -130,7 +130,7 @@ class _NotiState extends State<Noti> {
                     });
                   },
                   child: Text(
-                    'アラートメール情報',
+                    'カメラ登録',
                     style: TextStyle(
                         color: isTextPressed ? Colors.black : Colors.white,
                         fontWeight: FontWeight.normal,

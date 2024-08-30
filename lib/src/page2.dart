@@ -191,7 +191,7 @@ class NavigationPanel extends StatelessWidget {
             GestureDetector(
               onTap: () => onItemPressed('/page5'),
               child: Text(
-                'アラートメール情報',
+                'カメラ登録',
                 style: TextStyle(
                     color: isTextPressed ? Colors.black : Colors.white,
                     fontWeight: FontWeight.normal,
