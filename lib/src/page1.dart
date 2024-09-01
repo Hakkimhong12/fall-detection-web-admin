@@ -85,8 +85,8 @@ class _Page1State extends State<Page1> {
                                         padding: const EdgeInsets.symmetric(vertical: 30.0),
                                         child: CameraDetails(
                                           cameraId: data['cameraId'] ?? '',
-                                          targetName: data['targetName'] ?? '',
-                                          location: data['location'] ?? '',
+                                          targetName: data['patientName'] ?? '',
+                                          location: data['room'] ?? '',
                                           imagePath: data['imageUrl'] ?? '',
                                         ),
                                       );

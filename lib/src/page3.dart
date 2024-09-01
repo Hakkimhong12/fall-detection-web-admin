@@ -40,7 +40,7 @@ class _Page3State extends State<Page3> {
     print('Fetching document with cameraId: $cameraId');
 
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('cameraDetails')
+        .collection('Camera Informations')
         .where('cameraId', isEqualTo: cameraId)
         .get();
 

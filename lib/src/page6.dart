@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fall_detection_web_admin/api/camera_setting_api.dart';
 import 'package:flutter/material.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert'; // for utf8.encode
+// for utf8.encode
 
 class Page6 extends StatefulWidget {
   const Page6({super.key});
@@ -40,7 +39,7 @@ class _Page6State extends State<Page6> {
   Future<void> _fetchCameraIds() async {
     try {
       QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('cameraDetails').get();
+          await FirebaseFirestore.instance.collection('Camera Informations').get();
       List<String> ids =
           snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
       setState(() {
@@ -71,6 +70,7 @@ class _Page6State extends State<Page6> {
   List<DropdownMenuItem<String>> _getHourDropdownItems() {
     List<DropdownMenuItem<String>> items = [];
     final Map<String, int> options = {
+      '1mn': 60,
       '1hour': 1 * 3600,
       '3hour': 3 * 3600,
       '6hour': 6 * 3600,
@@ -393,7 +393,7 @@ class _Page6State extends State<Page6> {
       try {
         // Query the Firestore to get the document ID based on the selected cameraId
         final snapshot = await FirebaseFirestore.instance
-            .collection('cameraDetails')
+            .collection('Camera Informations')
             .where('cameraId', isEqualTo: _selectedCameraId)
             .get();
 
@@ -403,7 +403,7 @@ class _Page6State extends State<Page6> {
 
           // Update the document in Firestore
           await FirebaseFirestore.instance
-              .collection('cameraDetails')
+              .collection('Camera Informations')
               .doc(docId)
               .update({
             'fallDetectionRecordTime': _fallDetectionRecordTime,

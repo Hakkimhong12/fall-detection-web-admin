@@ -27,8 +27,8 @@ class _Page2State extends State<Page2> {
       for (var doc in documents) {
         imagePaths.add(doc['imageUrl']);
         cameraIds.add(doc['cameraId']);
-        targets.add(doc['targetName']);
-        locations.add(doc['location']);
+        targets.add(doc['patientName']);
+        locations.add(doc['room']);
       }
     });
   }

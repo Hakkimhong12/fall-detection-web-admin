@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import 'dart:typed_data';
-import 'dart:ui_web';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,7 +34,7 @@ class _Page4State extends State<Page4> {
 
   void _pickImage() {
     html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = 'image/*'; // Accept only image files
+    uploadInput.accept = 'Patient Image Folder/*'; // Accept only image files
     uploadInput.click(); // Open the file picker
 
     uploadInput.onChange.listen((event) {
@@ -58,7 +57,7 @@ class _Page4State extends State<Page4> {
     if (_selectedImage == null) return;
     final storageRef = FirebaseStorage.instance
         .ref()
-        .child('images/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
+        .child('Patient Image Folder/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
     final uploadTask = storageRef.putData(_selectedImage!);
     final snapshot = await uploadTask.whenComplete(() => {});
     final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -406,13 +405,13 @@ class _Page4State extends State<Page4> {
                                                       userData = {
                                                     'uid': uid,
                                                     'email': email,
-                                                    'phone_number': phoneNumber,
-                                                    'name': name,
+                                                    'phoneNumber': phoneNumber,
+                                                    'userName': name,
                                                     'relationship':
                                                         relationship,
                                                     'category': category,
-                                                    'camera_id': cameraId,
-                                                    'target_name': targetName,
+                                                    'cameraId': cameraId,
+                                                    'patientName': targetName,
                                                     'imageUrl':
                                                         _imageUrl, // Include the uploaded image URL
                                                   };
@@ -420,7 +419,7 @@ class _Page4State extends State<Page4> {
                                                   // Save the data to Firestore
                                                   await FirebaseFirestore
                                                       .instance
-                                                      .collection('user_acc')
+                                                      .collection('User Informations')
                                                       .add(userData);
                                                   
                                                   Map<String, dynamic>

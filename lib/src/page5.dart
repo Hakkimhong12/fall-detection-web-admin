@@ -12,25 +12,76 @@ class _Page5State extends State<Page5> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for form fields
-  final TextEditingController _cameraIdController = TextEditingController();
-  final TextEditingController _targetNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _videoUrlController = TextEditingController();
 
   // Variables to store selected dropdown values
   String? _selectedTime;
   String? _selectedHour;
+  String? _selectedCameraId;
+  String? _patientName;
 
   bool _isLoading = false;
+  List<String> _cameraIds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCameraIds();
+  }
 
   @override
   void dispose() {
-    // Dispose controllers to prevent memory leaks
-    _cameraIdController.dispose();
-    _targetNameController.dispose();
     _locationController.dispose();
     _videoUrlController.dispose();
     super.dispose();
+  }
+
+  // Fetch all Camera Ids
+  Future<void> _fetchCameraIds() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('User Informations')
+          .get();
+      setState(() {
+        _cameraIds =
+            snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error fectching camera IDS: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Fetch patient name with specific ID
+  Future<void> _updatePatientName(String cameraId) async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('User Informations')
+          .where('cameraId', isEqualTo: cameraId)
+          .limit(1)
+          .get();
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          _patientName = snapshot.docs.first['patientName'] as String?;
+        });
+      } else {
+        setState(() {
+          _patientName = null;  // Reset patient name if no matching document is found
+        });
+      }
+    } catch (e) {
+      print("Error fetching patient name: $e");
+      setState(() {
+        _patientName = null;  // Reset patient name in case of error
+      });
+    }
   }
 
   Future<void> _submitForm() async {
@@ -42,8 +93,8 @@ class _Page5State extends State<Page5> {
       try {
         // Fetch imageUrl from user_acc based on cameraId
         final userDoc = await FirebaseFirestore.instance
-            .collection('user_acc')
-            .where('camera_id', isEqualTo: _cameraIdController.text)
+            .collection('User Informations')
+            .where('cameraId', isEqualTo:_selectedCameraId)
             .get();
 
         String? imageUrl;
@@ -53,26 +104,27 @@ class _Page5State extends State<Page5> {
         }
 
         // Add data to cameraDetails collection
-        await FirebaseFirestore.instance.collection('cameraDetails').add({
-          'cameraId': _cameraIdController.text,
-          'targetName': _targetNameController.text,
-          'location': _locationController.text,
+        await FirebaseFirestore.instance.collection('Camera Informations').add({
+          'cameraId': _selectedCameraId,
+          'patientName': _patientName,
+          'room': _locationController.text,
           'videoUrl': _videoUrlController.text,
           'imageUrl': imageUrl, // Include the fetched imageUrl
-          'fallDetectionRecordTime': _selectedTime, // Save the selected time duration
+          'fallDetectionRecordTime':
+              _selectedTime, // Save the selected time duration
           'cameraRecordTime': _selectedHour, // Save the selected hour duration
           'timestamp': FieldValue.serverTimestamp(),
         });
 
         // Clear form and reset state
         _formKey.currentState?.reset();
-        _cameraIdController.clear();
-        _targetNameController.clear();
         _locationController.clear();
         _videoUrlController.clear();
         setState(() {
           _selectedTime = null;
           _selectedHour = null;
+          _selectedCameraId = null;
+          _patientName = null;
         });
 
         setState(() {
@@ -104,6 +156,7 @@ class _Page5State extends State<Page5> {
     final Map<String, int> options = {
       '5s': 5,
       '10s': 10,
+      '30s': 30,
       '15minutes': 15 * 60,
       '30minutes': 30 * 60,
     };
@@ -119,15 +172,12 @@ class _Page5State extends State<Page5> {
   List<DropdownMenuItem<String>> _getHourDropdownItems() {
     List<DropdownMenuItem<String>> items = [];
     final Map<String, int> options = {
+      '1mn': 60,
       '1hour': 1 * 3600,
       '3hour': 3 * 3600,
       '6hour': 6 * 3600,
       '12hour': 12 * 3600,
       '24hours': 24 * 3600,
-      '1week': 7 * 24 * 3600,
-      '1month': 30 * 24 * 3600,
-      '3month': 90 * 24 * 3600,
-      '6months': 180 * 24 * 3600,
     };
     options.forEach((key, value) {
       items.add(DropdownMenuItem(
@@ -224,12 +274,12 @@ class _Page5State extends State<Page5> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _buildTextField('カメラID', _cameraIdController, 'AZ201'),
+                _buildCameraIdDropdown(),
                 const SizedBox(height: 16),
-                _buildTextField('対象者氏名', _targetNameController, '山田はな'),
+                _buildPatientNameField(),
                 const SizedBox(height: 16),
-                _buildTextField(
-                    '動画を表示するURL', _videoUrlController, 'http://www.gcp.com/.......',
+                _buildTextField('動画を表示するURL', _videoUrlController,
+                    'http://www.gcp.com/.......',
                     keyboardType: TextInputType.url),
                 const SizedBox(height: 16),
                 _buildTextField('場所', _locationController, '102号室'),
@@ -265,6 +315,82 @@ class _Page5State extends State<Page5> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildCameraIdDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('カメラID',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          child: DropdownButtonFormField<String>(
+            value: _selectedCameraId,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+            ),
+            items: _cameraIds.map((String cameraId) {
+              return DropdownMenuItem<String>(
+                value: cameraId,
+                child: Text(cameraId),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedCameraId = newValue;
+                _updatePatientName(newValue!);
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'カメラIDを選択してください';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPatientNameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('対象者氏名',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          child: TextFormField(
+            initialValue: _patientName,
+            readOnly: true,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: _patientName ?? '対象者氏名',  // Use null-aware operator
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return '対象者氏名を入力してください';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
     );
   }
 

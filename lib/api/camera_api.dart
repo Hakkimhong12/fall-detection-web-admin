@@ -5,7 +5,7 @@ class CameraIdApi {
   // Method to retrieve camera details as a stream with sorting by timestamp
   Stream<QuerySnapshot> getCameraDetailsStream() {
     return _firestore
-        .collection('cameraDetails')
+        .collection('Camera Informations')
         .orderBy('timestamp', descending: true)  
         .snapshots();
         
@@ -14,7 +14,7 @@ class CameraIdApi {
   // Method to retrieve camera details as a future (one-time read)
   Future<QuerySnapshot> getCameraDetailsOnce() {
     return _firestore
-        .collection('cameraDetails')
+        .collection('Camera Informations')
         .orderBy('timestamp', descending: true)  
         .get();
   }

@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
       try {
         // Fetch the email corresponding to the username
         var userQuery = await _firestore
-            .collection('users')
+            .collection('Admin Informations')
             .where('username', isEqualTo: _usernameController.text.trim())
             .limit(1)
             .get();
