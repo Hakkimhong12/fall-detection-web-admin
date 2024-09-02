@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import 'dart:typed_data';
@@ -31,6 +32,7 @@ class _Page4State extends State<Page4> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _cameraIdController = TextEditingController();
   final TextEditingController _targetNameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
 
   void _pickImage() {
     html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
@@ -55,9 +57,8 @@ class _Page4State extends State<Page4> {
 
   Future<void> _uploadImage() async {
     if (_selectedImage == null) return;
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child('Patient Image Folder/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
+    final storageRef = FirebaseStorage.instance.ref().child(
+        'Patient Image Folder/${DateTime.now().microsecondsSinceEpoch}_$_fileName');
     final uploadTask = storageRef.putData(_selectedImage!);
     final snapshot = await uploadTask.whenComplete(() => {});
     final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -321,6 +322,9 @@ class _Page4State extends State<Page4> {
                                 const SizedBox(height: 16),
                                 _buildTextField('カメラID', _cameraIdController,
                                     'AZ101', false, TextInputType.text),
+                                const SizedBox(height: 15),
+                                _buildTextField('場所', _locationController,
+                                    '102号室', false, TextInputType.text),
                                 const SizedBox(height: 16),
                                 _buildTextField('対象者氏名', _targetNameController,
                                     '山田はな', false, TextInputType.text),
@@ -387,6 +391,8 @@ class _Page4State extends State<Page4> {
                                                   final targetName =
                                                       _targetNameController
                                                           .text;
+                                                  final location =
+                                                      _locationController.text;
 
                                                   // Create a new user in Firebase Authentication
                                                   UserCredential
@@ -403,39 +409,69 @@ class _Page4State extends State<Page4> {
                                                   // Create a map for the user data
                                                   Map<String, dynamic>
                                                       userData = {
-                                                    'uid': uid,
                                                     'email': email,
                                                     'phoneNumber': phoneNumber,
                                                     'userName': name,
-                                                    'relationship':
-                                                        relationship,
-                                                    'category': category,
-                                                    'cameraId': cameraId,
-                                                    'patientName': targetName,
-                                                    'imageUrl':
-                                                        _imageUrl, // Include the uploaded image URL
                                                   };
 
                                                   // Save the data to Firestore
                                                   await FirebaseFirestore
                                                       .instance
-                                                      .collection('User Informations')
-                                                      .add(userData);
-                                                  
+                                                      .collection(
+                                                          'User Informations')
+                                                      .doc(uid)
+                                                      .set(userData);
+
                                                   Map<String, dynamic>
-                                                      patientData = {
-                                                    'userUid': uid,
-                                                    'imageUrl_patient':
-                                                        _imageUrl,
+                                                      cameraAccessData = {
                                                     'cameraId': cameraId,
-                                                    'patientName': targetName,
+                                                    'userUid': uid,
                                                   };
 
                                                   await FirebaseFirestore
                                                       .instance
                                                       .collection(
-                                                          'Patient Informations')
-                                                      .add(patientData);
+                                                          'Camera Access')
+                                                      .add(cameraAccessData);
+
+                                                  Map<String, dynamic>
+                                                      patientData = {
+                                                    'imageUrl_patient':
+                                                        _imageUrl,
+                                                    'cameraId': cameraId,
+                                                    'patientName': targetName,
+                                                    'room': location,
+                                                    'timestamp': FieldValue
+                                                        .serverTimestamp(),
+                                                  };
+
+                                                  DocumentReference
+                                                      patientDocRef =
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                              'Patient Informations')
+                                                          .add(patientData);
+
+                                                  // Get the auto_generated document ID
+                                                  String patientDocumentId =
+                                                      patientDocRef.id;
+
+                                                  Map<String, dynamic>
+                                                      patientFamilyData = {
+                                                    'category': category,
+                                                    'patientDocumentId':
+                                                        patientDocumentId,
+                                                    'userUid': uid,
+                                                    'relationship':
+                                                        relationship,
+                                                  };
+
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'Patient Family')
+                                                      .add(patientFamilyData);
 
                                                   // Clear the fields after successful registration
                                                   _emailController.clear();
@@ -444,6 +480,7 @@ class _Page4State extends State<Page4> {
                                                   _nameController.clear();
                                                   _cameraIdController.clear();
                                                   _targetNameController.clear();
+                                                  _locationController.clear();
 
                                                   // Reset the dropdowns
                                                   setState(() {

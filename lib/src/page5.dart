@@ -12,14 +12,16 @@ class _Page5State extends State<Page5> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for form fields
-  final TextEditingController _locationController = TextEditingController();
   final TextEditingController _videoUrlController = TextEditingController();
+  final TextEditingController _patientNameController = TextEditingController();
+  final TextEditingController _patientRoomController = TextEditingController();
 
   // Variables to store selected dropdown values
   String? _selectedTime;
   String? _selectedHour;
   String? _selectedCameraId;
   String? _patientName;
+  String? _patientRoom;
 
   bool _isLoading = false;
   List<String> _cameraIds = [];
@@ -32,8 +34,9 @@ class _Page5State extends State<Page5> {
 
   @override
   void dispose() {
-    _locationController.dispose();
     _videoUrlController.dispose();
+    _patientNameController.dispose();
+    _patientRoomController.dispose();
     super.dispose();
   }
 
@@ -44,7 +47,7 @@ class _Page5State extends State<Page5> {
     });
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('User Informations')
+          .collection('Patient Informations')
           .get();
       setState(() {
         _cameraIds =
@@ -63,27 +66,30 @@ class _Page5State extends State<Page5> {
   Future<void> _updatePatientName(String cameraId) async {
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('User Informations')
+          .collection('Patient Informations')
           .where('cameraId', isEqualTo: cameraId)
           .limit(1)
           .get();
       if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first.data() as Map<String, dynamic>;
         setState(() {
-          _patientName = snapshot.docs.first['patientName'] as String?;
+          _patientNameController.text = doc['patientName'] as String? ?? '';
+          _patientRoomController.text = doc['room'] as String? ?? '';
         });
       } else {
         setState(() {
-          _patientName = null;  // Reset patient name if no matching document is found
+          _patientNameController.clear();
+          _patientRoomController.clear();
         });
       }
     } catch (e) {
       print("Error fetching patient name: $e");
       setState(() {
-        _patientName = null;  // Reset patient name in case of error
+        _patientNameController.clear();
+        _patientRoomController.clear();
       });
     }
   }
-
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -91,25 +97,10 @@ class _Page5State extends State<Page5> {
       });
 
       try {
-        // Fetch imageUrl from user_acc based on cameraId
-        final userDoc = await FirebaseFirestore.instance
-            .collection('User Informations')
-            .where('cameraId', isEqualTo:_selectedCameraId)
-            .get();
-
-        String? imageUrl;
-
-        if (userDoc.docs.isNotEmpty) {
-          imageUrl = userDoc.docs.first.data()['imageUrl'] as String?;
-        }
-
         // Add data to cameraDetails collection
         await FirebaseFirestore.instance.collection('Camera Informations').add({
           'cameraId': _selectedCameraId,
-          'patientName': _patientName,
-          'room': _locationController.text,
-          'videoUrl': _videoUrlController.text,
-          'imageUrl': imageUrl, // Include the fetched imageUrl
+          'cameraUrl': _videoUrlController.text,
           'fallDetectionRecordTime':
               _selectedTime, // Save the selected time duration
           'cameraRecordTime': _selectedHour, // Save the selected hour duration
@@ -118,7 +109,6 @@ class _Page5State extends State<Page5> {
 
         // Clear form and reset state
         _formKey.currentState?.reset();
-        _locationController.clear();
         _videoUrlController.clear();
         setState(() {
           _selectedTime = null;
@@ -278,11 +268,11 @@ class _Page5State extends State<Page5> {
                 const SizedBox(height: 16),
                 _buildPatientNameField(),
                 const SizedBox(height: 16),
+                _buildPatientRoomField(),
+                const SizedBox(height: 16),
                 _buildTextField('動画を表示するURL', _videoUrlController,
                     'http://www.gcp.com/.......',
                     keyboardType: TextInputType.url),
-                const SizedBox(height: 16),
-                _buildTextField('場所', _locationController, '102号室'),
                 const SizedBox(height: 16),
 
                 // Add Dropdowns here
@@ -376,18 +366,39 @@ class _Page5State extends State<Page5> {
             color: Colors.white,
           ),
           child: TextFormField(
-            initialValue: _patientName,
+            controller: _patientNameController,
             readOnly: true,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: _patientName ?? '対象者氏名',  // Use null-aware operator
+              hintText: _patientName ?? '対象者氏名', // Use null-aware operator
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return '対象者氏名を入力してください';
-              }
-              return null;
-            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPatientRoomField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('対象者の部屋',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          child: TextFormField(
+            controller: _patientRoomController,
+            readOnly: true,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: _patientRoom ?? '対象者の部屋', // Use null-aware operator
+            ),
           ),
         ),
       ],

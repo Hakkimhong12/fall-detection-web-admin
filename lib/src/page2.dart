@@ -25,7 +25,7 @@ class _Page2State extends State<Page2> {
 
     setState(() {
       for (var doc in documents) {
-        imagePaths.add(doc['imageUrl']);
+        imagePaths.add(doc['imageUrl_patient']);
         cameraIds.add(doc['cameraId']);
         targets.add(doc['patientName']);
         locations.add(doc['room']);

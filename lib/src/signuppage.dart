@@ -17,6 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _adminId = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -28,12 +29,15 @@ class _SignUpPageState extends State<SignUpPage> {
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
+
         );
 
         // Add user data to Firestore
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'username': _usernameController.text.trim(),
-          'email': _emailController.text.trim(),
+        await _firestore.collection('Admin Information').doc(userCredential.user!.uid).set({
+          'AdminID': _adminId.text.trim(),
+          'AdminName': _usernameController.text.trim(),
+          'AdminEmail': _emailController.text.trim(),
+          'AdminPassword': _passwordController.text.trim(),
         });
 
         print('User signed up: ${userCredential.user}');
@@ -89,6 +93,17 @@ class _SignUpPageState extends State<SignUpPage> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your username';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _adminId,
+                        decoration: const InputDecoration(labelText: 'Admin ID'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your ID';
                           }
                           return null;
                         },

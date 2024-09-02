@@ -87,7 +87,7 @@ class _Page1State extends State<Page1> {
                                           cameraId: data['cameraId'] ?? '',
                                           targetName: data['patientName'] ?? '',
                                           location: data['room'] ?? '',
-                                          imagePath: data['imageUrl'] ?? '',
+                                          imagePath: data['imageUrl_patient'] ?? '',
                                         ),
                                       );
                                     },

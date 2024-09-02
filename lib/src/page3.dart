@@ -47,7 +47,7 @@ class _Page3State extends State<Page3> {
     if (querySnapshot.docs.isNotEmpty) {
       DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
       setState(() {
-        currentVideoUrl = documentSnapshot['videoUrl'];
+        currentVideoUrl = documentSnapshot['cameraUrl'];
         _registerVideoView();
       });
     } else {

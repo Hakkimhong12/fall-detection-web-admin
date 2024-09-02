@@ -28,14 +28,14 @@ class _LoginPageState extends State<LoginPage> {
       try {
         // Fetch the email corresponding to the username
         var userQuery = await _firestore
-            .collection('Admin Informations')
-            .where('username', isEqualTo: _usernameController.text.trim())
+            .collection('Admin Information')
+            .where('AdminName', isEqualTo: _usernameController.text.trim())
             .limit(1)
             .get();
 
         if (userQuery.docs.isNotEmpty) {
           var userDoc = userQuery.docs.first;
-          var email = userDoc['email'];
+          var email = userDoc['AdminEmail'];
 
           // Sign in with email and password
           UserCredential userCredential = await _auth.signInWithEmailAndPassword(
