@@ -38,17 +38,22 @@ class _Page6State extends State<Page6> {
 
   Future<void> _fetchCameraIds() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('Camera Informations').get();
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('Camera Informations')
+          .orderBy('timestamp', descending: true) // Order by timestamp
+          .get();
+          
       List<String> ids =
           snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
+          
       setState(() {
         _cameraIds = ids;
       });
     } catch (e) {
-      print('Error fetching camera IDS: $e');
+      print('Error fetching camera IDs: $e');
     }
   }
+
 
   List<DropdownMenuItem<String>> _getTimeDropdownItems() {
     List<DropdownMenuItem<String>> items = [];

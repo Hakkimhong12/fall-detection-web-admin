@@ -69,6 +69,7 @@ class _Page4State extends State<Page4> {
       _fileName = null;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -351,126 +352,109 @@ class _Page4State extends State<Page4> {
                                     ),
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 25, horizontal: 40),
+                                        padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 40),
                                         foregroundColor: Colors.black,
-                                        backgroundColor: const Color(
-                                            0xFFD9C1AE), // background color
+                                        backgroundColor: const Color(0xFFD9C1AE), // background color
                                         // text color
                                       ),
                                       onPressed: _isLoading
                                           ? null
                                           : () async {
-                                              if (_formKey.currentState!
-                                                  .validate()) {
+                                              if (_formKey.currentState!.validate()) {
                                                 setState(() {
                                                   _isLoading = true;
                                                 });
 
                                                 try {
+                                                  final cameraId = _cameraIdController.text;
+
+                                                  // Check if the cameraId already exists
+                                                  final QuerySnapshot cameraSnapshot = await FirebaseFirestore.instance
+                                                      .collection('Patient Informations')
+                                                      .where('cameraId', isEqualTo: cameraId)
+                                                      .get();
+
+                                                  if (cameraSnapshot.docs.isNotEmpty) {
+                                                    // Camera ID already exists, show error message
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text('Camera ID already exists!')),
+                                                    );
+                                                    setState(() {
+                                                      _isLoading = false;
+                                                    });
+                                                    return; // Stop further execution
+                                                  }
+
+                                                  // Continue with the registration process if cameraId does not exist
+
                                                   // Upload image if one is selected
                                                   if (_selectedImage != null) {
                                                     await _uploadImage();
                                                   }
 
                                                   // Process and save other form data
-                                                  final email =
-                                                      _emailController.text;
-                                                  final password =
-                                                      _passwordController.text;
-                                                  final phoneNumber =
-                                                      _phoneController.text;
-                                                  final name =
-                                                      _nameController.text;
-                                                  final relationship =
-                                                      _selectedRelationship;
-                                                  final category =
-                                                      _selectedCategory;
-                                                  final cameraId =
-                                                      _cameraIdController.text;
-                                                  final targetName =
-                                                      _targetNameController
-                                                          .text;
-                                                  final location =
-                                                      _locationController.text;
+                                                  final email = _emailController.text;
+                                                  final password = _passwordController.text;
+                                                  final phoneNumber = _phoneController.text;
+                                                  final name = _nameController.text;
+                                                  final relationship = _selectedRelationship;
+                                                  final category = _selectedCategory;
+                                                  final targetName = _targetNameController.text;
+                                                  final location = _locationController.text;
 
                                                   // Create a new user in Firebase Authentication
-                                                  UserCredential
-                                                      userCredential =
-                                                      await FirebaseAuth
-                                                          .instance
-                                                          .createUserWithEmailAndPassword(
-                                                              email: email,
-                                                              password:
-                                                                  password);
-                                                  String? uid =
-                                                      userCredential.user?.uid;
+                                                  UserCredential userCredential = await FirebaseAuth.instance
+                                                      .createUserWithEmailAndPassword(
+                                                          email: email, password: password);
+                                                  String? uid = userCredential.user?.uid;
 
                                                   // Create a map for the user data
-                                                  Map<String, dynamic>
-                                                      userData = {
+                                                  Map<String, dynamic> userData = {
                                                     'email': email,
                                                     'phoneNumber': phoneNumber,
                                                     'userName': name,
                                                   };
 
                                                   // Save the data to Firestore
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'User Informations')
+                                                  await FirebaseFirestore.instance
+                                                      .collection('User Informations')
                                                       .doc(uid)
                                                       .set(userData);
 
-                                                  Map<String, dynamic>
-                                                      cameraAccessData = {
+                                                  Map<String, dynamic> cameraAccessData = {
                                                     'cameraId': cameraId,
                                                     'userUid': uid,
                                                   };
 
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'Camera Access')
+                                                  await FirebaseFirestore.instance
+                                                      .collection('Camera Access')
                                                       .add(cameraAccessData);
 
-                                                  Map<String, dynamic>
-                                                      patientData = {
-                                                    'imageUrl_patient':
-                                                        _imageUrl,
+                                                  Map<String, dynamic> patientData = {
+                                                    'imageUrl_patient': _imageUrl,
                                                     'cameraId': cameraId,
                                                     'patientName': targetName,
                                                     'room': location,
-                                                    'timestamp': FieldValue
-                                                        .serverTimestamp(),
+                                                    'timestamp': FieldValue.serverTimestamp(),
                                                   };
 
-                                                  DocumentReference
-                                                      patientDocRef =
-                                                      await FirebaseFirestore
-                                                          .instance
-                                                          .collection(
-                                                              'Patient Informations')
-                                                          .add(patientData);
+                                                  DocumentReference patientDocRef = await FirebaseFirestore.instance
+                                                      .collection('Patient Informations')
+                                                      .add(patientData);
 
-                                                  // Get the auto_generated document ID
-                                                  String patientDocumentId =
-                                                      patientDocRef.id;
+                                                  // Get the auto-generated document ID
+                                                  String patientDocumentId = patientDocRef.id;
 
-                                                  Map<String, dynamic>
-                                                      patientFamilyData = {
+                                                  Map<String, dynamic> patientFamilyData = {
                                                     'category': category,
-                                                    'patientDocumentId':
-                                                        patientDocumentId,
+                                                    'patientDocumentId': patientDocumentId,
                                                     'userUid': uid,
-                                                    'relationship':
-                                                        relationship,
+                                                    'relationship': relationship,
                                                   };
 
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'Patient Family')
+                                                  await FirebaseFirestore.instance
+                                                      .collection('Patient Family')
                                                       .add(patientFamilyData);
 
                                                   // Clear the fields after successful registration
@@ -484,8 +468,7 @@ class _Page4State extends State<Page4> {
 
                                                   // Reset the dropdowns
                                                   setState(() {
-                                                    _selectedRelationship =
-                                                        null;
+                                                    _selectedRelationship = null;
                                                     _selectedCategory = null;
                                                     _isLoading = false;
                                                     _selectedImage = null;
@@ -495,21 +478,15 @@ class _Page4State extends State<Page4> {
                                                   });
 
                                                   // Show a success message
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content:
-                                                            Text('登録が完了しました')),
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('登録が完了しました')),
                                                   );
                                                 } catch (e) {
                                                   setState(() {
                                                     _isLoading = false;
                                                   });
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                        content: Text(
-                                                            'エラーが発生しました。もう一度お試しください。: $e')),
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('エラーが発生しました。もう一度お試しください。: $e')),
                                                   );
                                                 }
                                               }

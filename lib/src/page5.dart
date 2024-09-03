@@ -40,27 +40,30 @@ class _Page5State extends State<Page5> {
     super.dispose();
   }
 
-  // Fetch all Camera Ids
   Future<void> _fetchCameraIds() async {
     setState(() {
       _isLoading = true;
     });
+
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('Patient Informations')
+          .collection('Camera Informations')
+          .orderBy('timestamp', descending: true) // Order by timestamp
           .get();
+
       setState(() {
         _cameraIds =
             snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
         _isLoading = false;
       });
     } catch (e) {
-      print("Error fectching camera IDS: $e");
+      print("Error fetching camera IDs: $e");
       setState(() {
         _isLoading = false;
       });
     }
   }
+
 
   // Fetch patient name with specific ID
   Future<void> _updatePatientName(String cameraId) async {
