@@ -79,6 +79,40 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  // Add the reset password method
+  void _resetPassword() async {
+    final TextEditingController emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: TextField(
+          controller: emailController,
+          decoration: const InputDecoration(hintText: 'Enter your email'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              String email = emailController.text.trim();
+              if (email.isNotEmpty) {
+                try {
+                  await _auth.sendPasswordResetEmail(email: email);
+                  Navigator.of(context).pop();
+                  _showCustomSnackbar(context, 'Password reset email sent', Icons.check, Colors.green);
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  _showCustomSnackbar(context, 'Error: $e', Icons.error, Colors.red);
+                }
+              }
+            },
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             const SizedBox(width: 100),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: _resetPassword,  // Link the button to the reset method
                               child: const Text(
                                 'Forgot Password?',
                                 style: TextStyle(color: Colors.deepPurple),
@@ -189,3 +223,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
