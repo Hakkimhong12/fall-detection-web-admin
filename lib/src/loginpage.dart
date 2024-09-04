@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       } catch (e) {
         print('Error: $e');
-        _showCustomSnackbar(context, 'Failed to sign in: $e', Icons.error, Colors.red);
+        _showCustomSnackbar(context, 'Incorrect Password!', Icons.error, Colors.red);
       } finally {
         setState(() {
           _isLoading = false;  // Stop loading
