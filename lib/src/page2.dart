@@ -187,7 +187,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 40),
             GestureDetector(
               onTap: () => onItemPressed('/page5'),
               child: Text(
@@ -199,7 +199,19 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 40),
+            GestureDetector(
+              onTap: () => onItemPressed('/deleteUserAccount'),
+              child: Text(
+                'ユーザーアカウント削除',
+                style: TextStyle(
+                    color: isTextPressed ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                    decoration: TextDecoration.none),
+              ),
+            ),
+            const SizedBox(height: 40),
             GestureDetector(
               onTap: () => onItemPressed('/page6'),
               child: Text(
@@ -211,11 +223,11 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 40),
             GestureDetector(
               onTapDown: (_) => onItemPressed('/notification'),
               child: Text(
-                '通知',
+                'Fall History',
                 style: TextStyle(
                     color: isTextPressed ? Colors.black : Colors.white,
                     fontWeight: FontWeight.normal,
@@ -223,7 +235,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 150),
+            const SizedBox(height: 100),
             const Padding(
               padding: EdgeInsets.only(left: 110),
               child: Text(

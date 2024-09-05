@@ -152,7 +152,7 @@ class _Page4State extends State<Page4> {
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 18)),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -179,7 +179,34 @@ class _Page4State extends State<Page4> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/deleteUserAccount');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        'ユーザーアカウント削除',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -206,7 +233,7 @@ class _Page4State extends State<Page4> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -225,7 +252,7 @@ class _Page4State extends State<Page4> {
                         });
                       },
                       child: Text(
-                        '通知',
+                        'Fall History',
                         style: TextStyle(
                             color: isTextPressed ? Colors.black : Colors.white,
                             fontWeight: FontWeight.normal,
@@ -234,7 +261,7 @@ class _Page4State extends State<Page4> {
                       ),
                     ),
                     //const Spacer(),
-                    const SizedBox(height: 150),
+                    const SizedBox(height: 100),
                     const Padding(
                       padding: EdgeInsets.only(left: 110),
                       child: Text(

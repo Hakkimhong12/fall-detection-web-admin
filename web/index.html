@@ -37,8 +37,8 @@
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
+    import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-messaging.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
   
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -52,6 +52,53 @@
   
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+  
+    // Initialize Firebase Messaging
+    const messaging = getMessaging(app);
+  
+    // Request permission to send notifications
+    messaging.getToken({ vapidKey: 'BDAmKdjQYZtONwL_aogshXK01Q3rT9JuTis0NrDzdh6nSERcFXxMdSpma851xGiaHuyH9s-XiSmxPZkq62veVvw' }).then((currentToken) => {
+      if (currentToken) {
+        console.log('Token obtained:', currentToken);
+        // Send the token to your server or save it locally for later use
+      } else {
+        console.log('No registration token available. Request permission to generate one.');
+      }
+    }).catch((err) => {
+      console.log('An error occurred while retrieving token. ', err);
+    });
+  
+    // Handle incoming messages when the app is in the foreground
+    onMessage(messaging, (payload) => {
+      console.log('Message received. ', payload);
+      // Customize notification here
+    });
+  
+    // Register the service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch((err) => {
+          console.log('Service Worker registration failed:', err);
+        });
+    }
+
+    const db = getFirestore(app);
+
+    const falldetectionCollection = collection(db, 'Fall Detections');
+    onSnapshot(falldetectionCollection, (snapshot) => {
+      snapshot.docChanges().forEach((change)=>{
+        if(change.type === 'added'){
+          console.log('Fall Detected:', fallEvent);
+          displayPopUpMessage(fallEvent);
+        }
+      });
+    });
+    function displayPopUpMessage(fallEvent){
+      const {cameraId, patientName, videoUrl} = fallEvent;
+      alert(`Fall detected!\nPatient: ${patientName}\nCamera ID: ${cameraId}\nVideo URL: ${videoUrl}`);
+    }
   </script>
 </body>
 </html>
