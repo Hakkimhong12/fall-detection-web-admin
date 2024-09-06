@@ -168,14 +168,14 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 30),
             const Text('カメラの全画面表示',
                 style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     decoration: TextDecoration.none)),
-            const SizedBox(height: 70),
+            const SizedBox(height: 30),
             GestureDetector(
               onTap: () => onItemPressed('/page4'),
               child: Text(
@@ -187,7 +187,19 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
+            GestureDetector(
+              onTap: () => onItemPressed('/registrationExistingUser'),
+              child: Text(
+                '既存ユーザーの患者登録',
+                style: TextStyle(
+                    color: isTextPressed ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                    decoration: TextDecoration.none),
+              ),
+            ),
+            const SizedBox(height: 30),
             GestureDetector(
               onTap: () => onItemPressed('/page5'),
               child: Text(
@@ -199,7 +211,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             GestureDetector(
               onTap: () => onItemPressed('/deleteUserAccount'),
               child: Text(
@@ -211,7 +223,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             GestureDetector(
               onTap: () => onItemPressed('/page6'),
               child: Text(
@@ -223,7 +235,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             GestureDetector(
               onTapDown: (_) => onItemPressed('/notification'),
               child: Text(
@@ -235,7 +247,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 150),
             const Padding(
               padding: EdgeInsets.only(left: 110),
               child: Text(

@@ -142,7 +142,7 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -169,7 +169,7 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 70),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -196,7 +196,34 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
+                    GestureDetector(
+                      onTapDown: (_) {
+                        setState(() {
+                          isTextPressed = true;
+                        });
+                      },
+                      onTapUp: (_) {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                        Navigator.pushNamed(context, '/registrationExistingUser');
+                      },
+                      onTapCancel: () {
+                        setState(() {
+                          isTextPressed = false;
+                        });
+                      },
+                      child: Text(
+                        '既存ユーザーの患者登録',
+                        style: TextStyle(
+                            color: isTextPressed ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 18,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -223,7 +250,7 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -250,13 +277,13 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 40.0),
+                    const SizedBox(height: 30.0),
                     const Text('初期設定',
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 18)),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -283,7 +310,7 @@ class _Page6State extends State<Page6> {
                             decoration: TextDecoration.none),
                       ),
                     ),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 150),
                     const Padding(
                       padding: EdgeInsets.only(left: 110),
                       child: Text(

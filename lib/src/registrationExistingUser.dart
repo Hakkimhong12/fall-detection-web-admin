@@ -5,14 +5,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class Page4 extends StatefulWidget {
-  const Page4({super.key});
+class Registrationexistinguser extends StatefulWidget {
+  const Registrationexistinguser({super.key});
 
   @override
-  State<Page4> createState() => _Page4State();
+  State<Registrationexistinguser> createState() =>
+      _RegistrationexistinguserState();
 }
 
-class _Page4State extends State<Page4> {
+class _RegistrationexistinguserState extends State<Registrationexistinguser> {
   bool isTextPressed = false;
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -26,13 +27,12 @@ class _Page4State extends State<Page4> {
   String? _selectedRoom;
   bool _isLoadingRooms = false;
 
+  List<Map<String, dynamic>> _users = [];
+  String? _selectedUserId;
+
   final _formKey = GlobalKey<FormState>();
   String? _selectedRelationship;
   String? _selectedCategory;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _cameraIdController = TextEditingController();
   final TextEditingController _targetNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
@@ -41,6 +41,25 @@ class _Page4State extends State<Page4> {
   void initState() {
     super.initState();
     _fetchRooms();
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('User Informations')
+          .get();
+      setState(() {
+        _users = snapshot.docs
+            .map((doc) => {
+                  'id': doc.id,
+                  'name': doc['userName'] as String,
+                })
+            .toList();
+      });
+    } catch (e) {
+      print('Error fetching users');
+    }
   }
 
   Future<void> _fetchRooms() async {
@@ -203,12 +222,6 @@ class _Page4State extends State<Page4> {
                       ),
                     ),
                     const SizedBox(height: 30.0),
-                    const Text('アラートメール確認者登録',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18)),
-                    const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
                         setState(() {
@@ -219,7 +232,7 @@ class _Page4State extends State<Page4> {
                         setState(() {
                           isTextPressed = false;
                         });
-                        Navigator.pushNamed(context, '/registrationExistingUser');
+                        Navigator.pushNamed(context, '/page4');
                       },
                       onTapCancel: () {
                         setState(() {
@@ -227,7 +240,7 @@ class _Page4State extends State<Page4> {
                         });
                       },
                       child: Text(
-                        '既存ユーザーの患者登録',
+                        'アラートメール確認者登録',
                         style: TextStyle(
                             color: isTextPressed ? Colors.black : Colors.white,
                             fontWeight: FontWeight.normal,
@@ -235,6 +248,12 @@ class _Page4State extends State<Page4> {
                             decoration: TextDecoration.none),
                       ),
                     ),
+                    const SizedBox(height: 30),
+                    const Text('既存ユーザーの患者登録',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
                     const SizedBox(height: 30),
                     GestureDetector(
                       onTapDown: (_) {
@@ -375,7 +394,7 @@ class _Page4State extends State<Page4> {
                             color: const Color(0xFFD9C1AE),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text('アラートメール確認者登録',
+                          child: const Text('既存ユーザーの患者登録',
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 20.0,
@@ -399,21 +418,10 @@ class _Page4State extends State<Page4> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 const SizedBox(height: 16),
-                                _buildTextField(
-                                    'メールアドレス',
-                                    _emailController,
-                                    'example@gmail.com',
-                                    false,
-                                    TextInputType.emailAddress),
+                                _buildUserDropdown(),
                                 const SizedBox(height: 16),
-                                _buildTextField('パスワード', _passwordController,
-                                    '********', true, TextInputType.text),
-                                const SizedBox(height: 16),
-                                _buildTextField('電話番号', _phoneController,
-                                    '03-1122-3344', false, TextInputType.phone),
-                                const SizedBox(height: 16),
-                                _buildTextField('氏名', _nameController, '山田 太郎',
-                                    false, TextInputType.text),
+                                _buildTextField('対象者氏名', _targetNameController,
+                                    '山田はな', false, TextInputType.text),
                                 const SizedBox(height: 16),
                                 _buildDropdownField('続柄', _selectedRelationship,
                                     ['息子', '娘', '父親', '母親', 'その他'], (newValue) {
@@ -438,11 +446,9 @@ class _Page4State extends State<Page4> {
                                     _updateCameraId(newValue!);
                                   });
                                 }),
-                                _buildTextField('カメラID', _cameraIdController,'AZ101',false,TextInputType.text,
-                                readOnly: true),
-                                const SizedBox(height: 16),
-                                _buildTextField('対象者氏名', _targetNameController,
-                                    '山田はな', false, TextInputType.text),
+                                _buildTextField('カメラID', _cameraIdController,
+                                    'AZ101', false, TextInputType.text,
+                                    readOnly: true),
                                 const SizedBox(height: 16),
                                 _buildImagePicker(),
                                 const SizedBox(height: 16),
@@ -475,191 +481,7 @@ class _Page4State extends State<Page4> {
                                       ),
                                       onPressed: _isLoading
                                           ? null
-                                          : () async {
-                                              if (_formKey.currentState!
-                                                  .validate()) {
-                                                setState(() {
-                                                  _isLoading = true;
-                                                });
-
-                                                try {
-                                                  final cameraId =
-                                                      _cameraIdController.text;
-
-                                                  // Check if the cameraId already exists
-                                                  final QuerySnapshot
-                                                      cameraSnapshot =
-                                                      await FirebaseFirestore
-                                                          .instance
-                                                          .collection(
-                                                              'Patient Informations')
-                                                          .where('cameraId',
-                                                              isEqualTo:
-                                                                  cameraId)
-                                                          .get();
-
-                                                  if (cameraSnapshot
-                                                      .docs.isNotEmpty) {
-                                                    // Camera ID already exists, show error message
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                          content: Text(
-                                                              'Camera ID already exists!')),
-                                                    );
-                                                    setState(() {
-                                                      _isLoading = false;
-                                                    });
-                                                    return; // Stop further execution
-                                                  }
-
-                                                  // Continue with the registration process if cameraId does not exist
-
-                                                  // Upload image if one is selected
-                                                  if (_selectedImage != null) {
-                                                    await _uploadImage();
-                                                  }
-
-                                                  // Process and save other form data
-                                                  final email =
-                                                      _emailController.text;
-                                                  final password =
-                                                      _passwordController.text;
-                                                  final phoneNumber =
-                                                      _phoneController.text;
-                                                  final name =
-                                                      _nameController.text;
-                                                  final relationship =
-                                                      _selectedRelationship;
-                                                  final category =
-                                                      _selectedCategory;
-                                                  final targetName =
-                                                      _targetNameController
-                                                          .text;
-                                                  final location =
-                                                      _locationController.text;
-
-                                                  // Create a new user in Firebase Authentication
-                                                  UserCredential
-                                                      userCredential =
-                                                      await FirebaseAuth
-                                                          .instance
-                                                          .createUserWithEmailAndPassword(
-                                                              email: email,
-                                                              password:
-                                                                  password);
-                                                  String? uid =
-                                                      userCredential.user?.uid;
-
-                                                  // Create a map for the user data
-                                                  Map<String, dynamic>
-                                                      userData = {
-                                                    'email': email,
-                                                    'phoneNumber': phoneNumber,
-                                                    'userName': name,
-                                                  };
-
-                                                  // Save the data to Firestore
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'User Informations')
-                                                      .doc(uid)
-                                                      .set(userData);
-
-                                                  Map<String, dynamic>
-                                                      cameraAccessData = {
-                                                    'cameraId': cameraId,
-                                                    'userUid': uid,
-                                                  };
-
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'Camera Access')
-                                                      .add(cameraAccessData);
-
-                                                  Map<String, dynamic>
-                                                      patientData = {
-                                                    'imageUrl_patient':
-                                                        _imageUrl,
-                                                    'cameraId': cameraId,
-                                                    'patientName': targetName,
-                                                    'room': location,
-                                                    'timestamp': FieldValue
-                                                        .serverTimestamp(),
-                                                  };
-
-                                                  DocumentReference
-                                                      patientDocRef =
-                                                      await FirebaseFirestore
-                                                          .instance
-                                                          .collection(
-                                                              'Patient Informations')
-                                                          .add(patientData);
-
-                                                  // Get the auto-generated document ID
-                                                  String patientDocumentId =
-                                                      patientDocRef.id;
-
-                                                  Map<String, dynamic>
-                                                      patientFamilyData = {
-                                                    'category': category,
-                                                    'patientDocumentId':
-                                                        patientDocumentId,
-                                                    'userUid': uid,
-                                                    'relationship':
-                                                        relationship,
-                                                  };
-
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection(
-                                                          'Patient Family')
-                                                      .add(patientFamilyData);
-
-                                                  // Clear the fields after successful registration
-                                                  _emailController.clear();
-                                                  _passwordController.clear();
-                                                  _phoneController.clear();
-                                                  _nameController.clear();
-                                                  _cameraIdController.clear();
-                                                  _targetNameController.clear();
-                                                  _locationController.clear();
-
-                                                  // Reset the dropdowns
-                                                  setState(() {
-                                                    _selectedRelationship =
-                                                        null;
-                                                    _selectedCategory = null;
-                                                    _isLoading = false;
-                                                    _selectedImage = null;
-                                                    _imageUrl = null;
-                                                    _fileName = null;
-                                                    _imagePickerKey++;
-                                                  });
-
-                                                  // Show a success message
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content:
-                                                            Text('登録が完了しました')),
-                                                  );
-                                                } catch (e) {
-                                                  setState(() {
-                                                    _isLoading = false;
-                                                  });
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                        content: Text(
-                                                            'エラーが発生しました。もう一度お試しください。: $e')),
-                                                  );
-                                                }
-                                              }
-                                            },
+                                          : _handleRegistration,
                                       child: const Text('登録'),
                                     ),
                                   ],
@@ -689,7 +511,7 @@ class _Page4State extends State<Page4> {
     );
   }
 
-  // Reusable Text Field Widget
+  // Text Field Widget
   Widget _buildTextField(String label, TextEditingController controller,
       String hintText, bool isPassword, TextInputType inputType,
       {bool readOnly = false}) {
@@ -813,4 +635,144 @@ class _Page4State extends State<Page4> {
       ],
     );
   }
+  Widget _buildUserDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'ユーザー',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          child: DropdownButtonFormField<String>(
+            value: _selectedUserId,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+            ),
+            items: _users.map((user) {
+              return DropdownMenuItem<String>(
+                value: user['id'],
+                child: Text(user['name']),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedUserId = newValue;
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'ユーザーを選択してください';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleRegistration() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final cameraId = _cameraIdController.text;
+        final userUid = _selectedUserId; // This is already the userUid
+
+        // Check if the cameraId already exists
+        final QuerySnapshot cameraSnapshot = await FirebaseFirestore.instance
+            .collection('Patient Informations')
+            .where('cameraId', isEqualTo: cameraId)
+            .get();
+
+        if (cameraSnapshot.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Camera ID already exists!')),
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Upload image if one is selected
+        if (_selectedImage != null) {
+          await _uploadImage();
+        }
+
+        // Create a new Camera Access document
+        Map<String, dynamic> cameraAccessData = {
+          'cameraId': cameraId,
+          'userUid': userUid,
+        };
+        await FirebaseFirestore.instance
+            .collection('Camera Access')
+            .add(cameraAccessData);
+
+        // Create a new Patient Information document
+        Map<String, dynamic> patientData = {
+          'imageUrl_patient': _imageUrl,
+          'cameraId': cameraId,
+          'patientName': _targetNameController.text,
+          'room': _locationController.text,
+          'timestamp': FieldValue.serverTimestamp(),
+        };
+        DocumentReference patientDocRef = await FirebaseFirestore.instance
+            .collection('Patient Informations')
+            .add(patientData);
+
+        // Create a new Patient Family document
+        Map<String, dynamic> patientFamilyData = {
+          'category': _selectedCategory,
+          'patientDocumentId': patientDocRef.id,
+          'userUid': userUid,
+          'relationship': _selectedRelationship,
+        };
+        await FirebaseFirestore.instance
+            .collection('Patient Family')
+            .add(patientFamilyData);
+
+        // Clear the fields after successful registration
+        _clearFields();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('登録が完了しました')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('エラーが発生しました。もう一度お試しください。: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _clearFields() {
+    _cameraIdController.clear();
+    _targetNameController.clear();
+    _locationController.clear();
+    setState(() {
+      _selectedUserId = null;
+      _selectedRelationship = null;
+      _selectedCategory = null;
+      _selectedImage = null;
+      _imageUrl = null;
+      _fileName = null;
+      _imagePickerKey++;
+    });
+  }
+
 }

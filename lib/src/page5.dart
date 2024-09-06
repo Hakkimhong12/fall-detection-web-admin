@@ -13,86 +13,23 @@ class _Page5State extends State<Page5> {
 
   // Controllers for form fields
   final TextEditingController _videoUrlController = TextEditingController();
-  final TextEditingController _patientNameController = TextEditingController();
-  final TextEditingController _patientRoomController = TextEditingController();
+  final TextEditingController _roomController = TextEditingController();
+  final TextEditingController _cameraIdController = TextEditingController();
 
   // Variables to store selected dropdown values
   String? _selectedTime;
   String? _selectedHour;
-  String? _selectedCameraId;
-  String? _patientName;
-  String? _patientRoom;
 
   bool _isLoading = false;
-  List<String> _cameraIds = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCameraIds();
-  }
 
   @override
   void dispose() {
     _videoUrlController.dispose();
-    _patientNameController.dispose();
-    _patientRoomController.dispose();
+    _cameraIdController.dispose();
+    _roomController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchCameraIds() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('Camera Informations')
-          .orderBy('timestamp', descending: true) // Order by timestamp
-          .get();
-
-      setState(() {
-        _cameraIds =
-            snapshot.docs.map((doc) => doc['cameraId'] as String).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("Error fetching camera IDs: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-
-  // Fetch patient name with specific ID
-  Future<void> _updatePatientName(String cameraId) async {
-    try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('Patient Informations')
-          .where('cameraId', isEqualTo: cameraId)
-          .limit(1)
-          .get();
-      if (snapshot.docs.isNotEmpty) {
-        final doc = snapshot.docs.first.data() as Map<String, dynamic>;
-        setState(() {
-          _patientNameController.text = doc['patientName'] as String? ?? '';
-          _patientRoomController.text = doc['room'] as String? ?? '';
-        });
-      } else {
-        setState(() {
-          _patientNameController.clear();
-          _patientRoomController.clear();
-        });
-      }
-    } catch (e) {
-      print("Error fetching patient name: $e");
-      setState(() {
-        _patientNameController.clear();
-        _patientRoomController.clear();
-      });
-    }
-  }
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -100,42 +37,55 @@ class _Page5State extends State<Page5> {
       });
 
       try {
-        // Add data to cameraDetails collection
-        await FirebaseFirestore.instance.collection('Camera Informations').add({
-          'cameraId': _selectedCameraId,
-          'cameraUrl': _videoUrlController.text,
-          'fallDetectionRecordTime':
-              _selectedTime, // Save the selected time duration
-          'cameraRecordTime': _selectedHour, // Save the selected hour duration
-          'timestamp': FieldValue.serverTimestamp(),
-        });
+        final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('Camera Informations')
+            .where('cameraId', isEqualTo: _cameraIdController.text)
+            .get();
 
-        // Clear form and reset state
-        _formKey.currentState?.reset();
-        _videoUrlController.clear();
-        setState(() {
-          _selectedTime = null;
-          _selectedHour = null;
-          _selectedCameraId = null;
-          _patientName = null;
-        });
+        final QuerySnapshot roomQuerySnapshot = await FirebaseFirestore.instance
+            .collection('Camera Informations')
+            .where('room', isEqualTo: _roomController.text)
+            .get();
 
-        setState(() {
-          _isLoading = false;
-        });
+        if (querySnapshot.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('このカメラIDは既に登録されています。')),
+          );
+        } else if (roomQuerySnapshot.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('この部屋は既に登録されています。')),
+          );
+        } else {
+          await FirebaseFirestore.instance
+              .collection('Camera Informations')
+              .add({
+            'cameraId': _cameraIdController.text,
+            'cameraUrl': _videoUrlController.text,
+            'fallDetectionRecordTime': _selectedTime,
+            'cameraRecordTime': _selectedHour,
+            'room': _roomController.text,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('登録が完了しました')),
-        );
+          _formKey.currentState?.reset();
+          _cameraIdController.clear();
+          _videoUrlController.clear();
+          _roomController.clear();
+          setState(() {
+            _selectedTime = null;
+            _selectedHour = null;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登録が完了しました')),
+          );
+        }
       } catch (e) {
-        // Handle any errors
-        print('Error submitting form: $e');
+        print('Error submitting from');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('エラーが発生しました。もう一度お試しください。')),
         );
       } finally {
-        // Ensure loading state is reset even if an error occurs
         setState(() {
           _isLoading = false;
         });
@@ -202,23 +152,25 @@ class _Page5State extends State<Page5> {
             children: [
               const SizedBox(height: 50.0),
               _buildSidebarButton('AIカメラ管理画面', '/page1'),
-              const SizedBox(height: 100),
+              const SizedBox(height: 30),
               _buildSidebarButton('カメラの全画面表示', '/page2'),
-              const SizedBox(height: 70),
+              const SizedBox(height: 30),
               _buildSidebarButton('アラートメール確認者登録', '/page4'),
-              const SizedBox(height: 40.0),
+              const SizedBox(height: 30),
+              _buildSidebarButton('既存ユーザーの患者登録', '/registrationExistingUser'),
+              const SizedBox(height: 30.0),
               const Text('カメラ登録',
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 18)),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               _buildSidebarButton('ユーザーアカウント削除', '/deleteUserAccount'),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               _buildSidebarButton('初期設定', '/page6'),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               _buildSidebarButton('Fall History', '/notification'),
-              const SizedBox(height: 100),
+              const SizedBox(height: 150),
               const Padding(
                 padding: EdgeInsets.only(left: 110),
                 child: Text(
@@ -269,11 +221,9 @@ class _Page5State extends State<Page5> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _buildCameraIdDropdown(),
+                _buildTextField('カメラID', _cameraIdController, 'カメラIDを入力してください'),
                 const SizedBox(height: 16),
-                _buildPatientNameField(),
-                const SizedBox(height: 16),
-                _buildPatientRoomField(),
+                _buildTextField('部屋', _roomController, '部屋番号を入力してください'),
                 const SizedBox(height: 16),
                 _buildTextField('動画を表示するURL', _videoUrlController,
                     'http://www.gcp.com/.......',
@@ -310,103 +260,6 @@ class _Page5State extends State<Page5> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildCameraIdDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('カメラID',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-          ),
-          child: DropdownButtonFormField<String>(
-            value: _selectedCameraId,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-            ),
-            items: _cameraIds.map((String cameraId) {
-              return DropdownMenuItem<String>(
-                value: cameraId,
-                child: Text(cameraId),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedCameraId = newValue;
-                _updatePatientName(newValue!);
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'カメラIDを選択してください';
-              }
-              return null;
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPatientNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('対象者氏名',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-          ),
-          child: TextFormField(
-            controller: _patientNameController,
-            readOnly: true,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: _patientName ?? '対象者氏名', // Use null-aware operator
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPatientRoomField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('対象者の部屋',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-          ),
-          child: TextFormField(
-            controller: _patientRoomController,
-            readOnly: true,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: _patientRoom ?? '対象者の部屋', // Use null-aware operator
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -521,7 +374,7 @@ class _Page5State extends State<Page5> {
     return Scaffold(
       body: Row(
         children: [
-          _buildSidebar(context), // Pass the context here
+          _buildSidebar(context),
           Expanded(
             child: Stack(
               children: [

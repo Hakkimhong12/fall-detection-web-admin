@@ -7,6 +7,7 @@ import 'package:fall_detection_web_admin/src/page6.dart';
 import 'package:fall_detection_web_admin/src/signuppage.dart';
 import 'package:fall_detection_web_admin/src/notification.dart';
 import 'package:fall_detection_web_admin/src/deleteUserAccount.dart';
+import 'package:fall_detection_web_admin/src/registrationExistingUser.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -102,6 +103,19 @@ class MyApp extends StatelessWidget {
             return PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   const Page4(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeThroughTransition(
+                  animation: animation,
+                  secondaryAnimation: secondaryAnimation,
+                  child: child,
+                );
+              },
+            );
+          case '/registrationExistingUser':
+            return PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const Registrationexistinguser(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeThroughTransition(
