@@ -335,7 +335,7 @@ class _Page4State extends State<Page4> {
                         });
                       },
                       child: Text(
-                        'Fall History',
+                        '転倒検知履歴',
                         style: TextStyle(
                             color: isTextPressed ? Colors.black : Colors.white,
                             fontWeight: FontWeight.normal,

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class Registrationexistinguser extends StatefulWidget {
   const Registrationexistinguser({super.key});
@@ -354,7 +353,7 @@ class _RegistrationexistinguserState extends State<Registrationexistinguser> {
                         });
                       },
                       child: Text(
-                        'Fall History',
+                        '転倒検知履歴',
                         style: TextStyle(
                             color: isTextPressed ? Colors.black : Colors.white,
                             fontWeight: FontWeight.normal,

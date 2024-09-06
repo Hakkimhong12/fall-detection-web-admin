@@ -40,7 +40,7 @@ dependencies:
   firebase_auth: ^4.5.0
   firebase_core: ^2.10.0
   google_fonts: ^3.0.1
-  video_player: ^2.4.6
+  video_player: ^2.9.1
   image_picker: ^1.1.2
   firebase_storage: ^11.0.0
   path: ^1.8.3

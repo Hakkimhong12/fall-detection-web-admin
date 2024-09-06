@@ -239,7 +239,7 @@ class NavigationPanel extends StatelessWidget {
             GestureDetector(
               onTapDown: (_) => onItemPressed('/notification'),
               child: Text(
-                'Fall History',
+                '転倒検知履歴',
                 style: TextStyle(
                     color: isTextPressed ? Colors.black : Colors.white,
                     fontWeight: FontWeight.normal,

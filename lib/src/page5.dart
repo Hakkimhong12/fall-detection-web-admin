@@ -169,7 +169,7 @@ class _Page5State extends State<Page5> {
               const SizedBox(height: 30),
               _buildSidebarButton('初期設定', '/page6'),
               const SizedBox(height: 30),
-              _buildSidebarButton('Fall History', '/notification'),
+              _buildSidebarButton('転倒検知履歴', '/notification'),
               const SizedBox(height: 150),
               const Padding(
                 padding: EdgeInsets.only(left: 110),
