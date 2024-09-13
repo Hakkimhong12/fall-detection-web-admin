@@ -14,7 +14,7 @@ class _NotiState extends State<Noti> {
 
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch all fall detection events
+
   Stream<QuerySnapshot> getFallDetectionHistory() {
     return _firestore
         .collection('Fall Detections')
@@ -75,7 +75,7 @@ class _NotiState extends State<Noti> {
                         decoration: TextDecoration.none),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 50),
                 GestureDetector(
                   onTapDown: (_) {
                     setState(() {
@@ -102,7 +102,7 @@ class _NotiState extends State<Noti> {
                         decoration: TextDecoration.none),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 50),
                 GestureDetector(
                   onTapDown: (_) {
                     setState(() {
@@ -202,7 +202,34 @@ class _NotiState extends State<Noti> {
                     });
                   },
                   child: Text(
-                    'ユーザーアカウント削除',
+                    'ユーザー情報管理',
+                    style: TextStyle(
+                        color: isTextPressed ? Colors.black : Colors.white,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 18,
+                        decoration: TextDecoration.none),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                GestureDetector(
+                  onTapDown: (_) {
+                    setState(() {
+                      isTextPressed = true;
+                    });
+                  },
+                  onTapUp: (_) {
+                    setState(() {
+                      isTextPressed = false;
+                    });
+                    Navigator.pushNamed(context, '/deletepatient');
+                  },
+                  onTapCancel: () {
+                    setState(() {
+                      isTextPressed = false;
+                    });
+                  },
+                  child: Text(
+                    '患者情報管理 ',
                     style: TextStyle(
                         color: isTextPressed ? Colors.black : Colors.white,
                         fontWeight: FontWeight.normal,
@@ -243,7 +270,7 @@ class _NotiState extends State<Noti> {
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                         fontSize: 18)),
-                const SizedBox(height: 150),
+                const SizedBox(height: 100),
                 const Padding(
                   padding: EdgeInsets.only(left: 100),
                   child: Text(

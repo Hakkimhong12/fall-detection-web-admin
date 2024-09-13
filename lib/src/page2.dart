@@ -1,3 +1,5 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fall_detection_web_admin/api/camera_api.dart';
 import 'package:flutter/material.dart';
@@ -168,14 +170,14 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 50),
             const Text('カメラの全画面表示',
                 style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     decoration: TextDecoration.none)),
-            const SizedBox(height: 30),
+            const SizedBox(height: 50),
             GestureDetector(
               onTap: () => onItemPressed('/page4'),
               child: Text(
@@ -215,7 +217,19 @@ class NavigationPanel extends StatelessWidget {
             GestureDetector(
               onTap: () => onItemPressed('/deleteUserAccount'),
               child: Text(
-                'ユーザーアカウント削除',
+                'ユーザー情報管理',
+                style: TextStyle(
+                    color: isTextPressed ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                    decoration: TextDecoration.none),
+              ),
+            ),
+            const SizedBox(height: 30),
+            GestureDetector(
+              onTap: () => onItemPressed('/deletepatient'),
+              child: Text(
+                '患者情報管理',
                 style: TextStyle(
                     color: isTextPressed ? Colors.black : Colors.white,
                     fontWeight: FontWeight.normal,
@@ -247,7 +261,7 @@ class NavigationPanel extends StatelessWidget {
                     decoration: TextDecoration.none),
               ),
             ),
-            const SizedBox(height: 150),
+            const SizedBox(height: 100),
             const Padding(
               padding: EdgeInsets.only(left: 110),
               child: Text(

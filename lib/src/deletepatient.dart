@@ -1,27 +1,26 @@
+import 'package:fall_detection_web_admin/src/deleteUserAccount.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class deleteUserAccount extends StatefulWidget {
-  const deleteUserAccount({super.key});
+class DeletePatient extends StatefulWidget {
+  const DeletePatient({super.key});
 
   @override
-  State<deleteUserAccount> createState() => _deleteUserAccountState();
+  State<DeletePatient> createState() => _deletePatientState();
 }
 
-class _deleteUserAccountState extends State<deleteUserAccount> {
+class _deletePatientState extends State<DeletePatient> {
   bool _isLoading = false;
-  List<Map<String, String>> _users = [];
+  List<Map<String, String>> _patients = [];
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _fetchUsers();
+    _fetchPatients();
   }
 
-  // Fetch all users from 'User Informations' collection
-  Future<void> _fetchUsers() async {
+  Future<void> _fetchPatients() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -29,43 +28,43 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
 
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('User Informations')
+          .collection('Patient Informations')
           .get();
 
       setState(() {
-        _users = snapshot.docs.map((doc) {
+        _patients = snapshot.docs.map((doc) {
           return {
             'id': doc.id,
-            'userName': doc['userName'] as String,
-            'email': doc['email'] as String,
-            'phoneNumber': doc['phoneNumber'] as String,
+            'patientName': doc['patientName'] as String,
+            'room': doc['room'] as String,
+            'cameraId': doc['cameraId'] as String,
           };
         }).toList();
         _isLoading = false;
       });
 
-      if (_users.isEmpty) {
+      if (_patients.isEmpty) {
         setState(() {
-          _error = 'No users found.';
+          _error = 'No patients found.';
         });
       }
     } catch (e) {
-      print("Error fetching users: $e");
+      print("Error fetching patients: $e");
       setState(() {
         _isLoading = false;
-        _error = 'Failed to fetch users. Please try again.';
+        _error = 'Failed to fetch patients. Please try again.';
       });
     }
   }
 
-  // Delete user and associated data
-  Future<void> _deleteUser(String userId) async {
+  // Delete patient and associated data
+  Future<void> _deletePatient(String patientId) async {
     bool? confirmDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('確認'),
-          content: const Text('本当にこのユーザーアカウントを削除しますか？この操作は元に戻せません。'),
+          content: const Text('本当にこの患者情報を削除しますか？この操作は元に戻せません。'),
           actions: <Widget>[
             TextButton(
               child: const Text('キャンセル'),
@@ -86,54 +85,22 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
       });
 
       try {
-        // Step 1: Delete the user information from Firestore
-        final userDoc = FirebaseFirestore.instance
-            .collection('User Informations')
-            .doc(userId);
-        final userData = await userDoc.get();
-        final userEmail = userData['email'];
-
-        // Step 2: Delete related documents in 'Camera Access' collection
+        // Delete patient information from 'Patient Informations'
         await FirebaseFirestore.instance
-            .collection('Camera Access')
-            .where('userUid', isEqualTo: userId)
-            .get()
-            .then((snapshot) {
-          for (DocumentSnapshot doc in snapshot.docs) {
-            doc.reference.delete();
-          }
-        });
+            .collection('Patient Informations')
+            .doc(patientId)
+            .delete();
 
-        // Step 3: Delete related documents in 'Patient Family' collection
-        await FirebaseFirestore.instance
-            .collection('Patient Family')
-            .where('userUid', isEqualTo: userId)
-            .get()
-            .then((snapshot) {
-          for (DocumentSnapshot doc in snapshot.docs) {
-            doc.reference.delete();
-          }
-        });
-
-        // Step 4: Delete user document from 'User Informations'
-        await userDoc.delete();
-
-        // Step 5: Delete user from Firebase Authentication
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null && user.email == userEmail) {
-          await user.delete();
-        }
-
-        // Refresh the list of users
-        await _fetchUsers();
+        // Refresh the list of patients
+        await _fetchPatients();
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ユーザーアカウントと関連情報が削除されました')),
+          const SnackBar(content: Text('患者情報が削除されました')),
         );
       } catch (e) {
         // Handle any errors
-        print('Error deleting user account and related data: $e');
+        print('Error deleting patient information: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('エラーが発生しました。もう一度お試しください。')),
         );
@@ -145,61 +112,31 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
     }
   }
 
-  Future<void> _updateUser(String userId, String newUserName, String newEmail, String newPhoneNumber) async {
-    try {
-      // Update only specific fields
-      await FirebaseFirestore.instance
-          .collection('User Informations')
-          .doc(userId)
-          .update({
-        'userName': newUserName,
-        'email': newEmail,
-        'phoneNumber': newPhoneNumber,
-      });
-
-      // Optional: Update the email in Firebase Authentication as well
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.updateEmail(newEmail);
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ユーザー情報が更新されました')),
-      );
-    } catch (e) {
-      print('Error updating user: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ユーザー情報の更新に失敗しました')),
-      );
-    }
-  }
-
-  // Edit user dialog
-  Future<void> _showEditDialog(Map<String, String> user) async {
-    final TextEditingController userNameController = TextEditingController(text: user['userName']);
-    final TextEditingController emailController = TextEditingController(text: user['email']);
-    final TextEditingController phoneNumberController = TextEditingController(text: user['phoneNumber']);
+  Future<void> _showEditDialog(Map<String, dynamic> patient) async {
+    final TextEditingController patientNameController = TextEditingController(text: patient['patientName']);
+    final TextEditingController roomController = TextEditingController(text: patient['room']);
+    final TextEditingController cameraIdController = TextEditingController(text: patient['cameraId']);
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('ユーザー情報を編集'),
+          title: const Text('患者情報を編集'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 TextField(
-                  controller: userNameController,
-                  decoration: const InputDecoration(labelText: 'ユーザー名'),
+                  controller: patientNameController,
+                  decoration: const InputDecoration(labelText: '患者名'),
                 ),
                 TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'メールアドレス'),
+                  controller: roomController,
+                  decoration: const InputDecoration(labelText: '部屋番号'),
                 ),
                 TextField(
-                  controller: phoneNumberController,
-                  decoration: const InputDecoration(labelText: '電話番号'),
+                  controller: cameraIdController,
+                  decoration: const InputDecoration(labelText: 'カメラID'),
                 ),
               ],
             ),
@@ -214,20 +151,45 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
             TextButton(
               child: const Text('保存'),
               onPressed: () {
-                _updateUser(
-                  user['id']!,
-                  userNameController.text,
-                  emailController.text,
-                  phoneNumberController.text,
+                _updatePatient(
+                  patient['id'],
+                  patientNameController.text,
+                  roomController.text,
+                  cameraIdController.text,
                 );
                 Navigator.of(context).pop();
-                _fetchUsers(); // Refresh the list after updating
               },
             ),
           ],
         );
       },
     );
+  }
+
+  // Update patient information
+  Future<void> _updatePatient(String patientId, String newPatientName, String newRoom, String newCameraId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Patient Informations')
+          .doc(patientId)
+          .update({
+        'patientName': newPatientName,
+        'room': newRoom,
+        'cameraId': newCameraId,
+      });
+
+      // Refresh the list of patients
+      await _fetchPatients();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('患者情報が更新されました')),
+      );
+    } catch (e) {
+      print('Error updating patient: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('患者情報の更新に失敗しました')),
+      );
+    }
   }
 
 
@@ -261,13 +223,13 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
               const SizedBox(height: 30),
               _buildSidebarButton('カメラ登録', '/page5'),
               const SizedBox(height: 30),
-              const Text('ユーザー情報管理',
+              _buildSidebarButton('ユーザー情報管理', '/deleteUserAccount'),
+              const SizedBox(height: 30),
+              const Text('患者情報管理',
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 18)),
-              const SizedBox(height: 30),
-              _buildSidebarButton('患者情報管理', '/deletepatient'),
               const SizedBox(height: 30),
               _buildSidebarButton('初期設定', '/page6'),
               const SizedBox(height: 30),
@@ -312,16 +274,16 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
     );
   }
 
-  // User Cards
-  Widget _buildUserCards() {
+  // Patient Cards
+  Widget _buildPatientCards() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_users.isEmpty) {
+    if (_patients.isEmpty) {
       return Center(
         child: Text(
-          _error ?? 'No users found.',
+          _error ?? 'No patients found.',
           style: const TextStyle(fontSize: 18, color: Colors.red),
         ),
       );
@@ -329,16 +291,16 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
-      itemCount: _users.length,
+      itemCount: _patients.length,
       itemBuilder: (context, index) {
-        final user = _users[index];
+        final patient = _patients[index];
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Align(
-            alignment: Alignment.center,  // Center the card if necessary
+            alignment: Alignment.center,
             child: SizedBox(
-              width: 730, // Set your preferred width here
-              height: 100, // Set your preferred height here
+              width: 730,
+              height: 90,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -361,7 +323,7 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ユーザー名: ${user['userName'] ?? ''}',
+                            '患者名: ${patient['patientName']}',
                             style: const TextStyle(
                               fontSize: 15,
                               color: Colors.orange,
@@ -369,7 +331,7 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                             ),
                           ),
                           Text(
-                            '電話番号: ${user['phoneNumber'] ?? ''}',
+                            '部屋 : ${patient['room']}',
                             style: const TextStyle(
                               fontSize: 15,
                               color: Colors.black45,
@@ -377,7 +339,7 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                             ),
                           ),
                           Text(
-                            'メールアドレス: ${user['email'] ?? ''}',
+                            'カメラID: ${patient['cameraId']}',
                             style: const TextStyle(
                               fontSize: 15,
                               color: Colors.black45,
@@ -391,11 +353,11 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showEditDialog(user),
+                          onPressed: () => _showEditDialog(patient),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteUser(user['id']!),
+                          onPressed: () => _deletePatient(patient['id']!),
                         ),
                       ],
                     ),
@@ -429,7 +391,7 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                         color: const Color(0xFFD9C1AE),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text('ユーザー情報管理',
+                      child: const Text('患者情報管理 ',
                           style: TextStyle(
                               color: Colors.black,
                               fontSize: 20.0,
@@ -440,7 +402,7 @@ class _deleteUserAccountState extends State<deleteUserAccount> {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: _buildUserCards(),
+                    child: _buildPatientCards(),
                   ),
                 ),
               ],

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -38,21 +37,15 @@ class _SignUpPageState extends State<SignUpPage> {
           password: _passwordController.text.trim(),
         );
 
-        // Retrieve FCM token
-        FirebaseMessaging messaging = FirebaseMessaging.instance;
-        String? token = await messaging.getToken();
-        if (token != null) {
-          // Save user data and token to Firestore
-          await _firestore.collection('Admin Information').doc(userCredential.user!.uid).set({
-            'AdminID': _adminId.text.trim(),
-            'AdminName': _usernameController.text.trim(),
-            'AdminEmail': _emailController.text.trim(),
-            'AdminPassword': _passwordController.text.trim(),
-            'fcmToken': token, // Add FCM token
-          });
+        // Save user data to Firestore
+        await _firestore.collection('Admin Information').doc(userCredential.user!.uid).set({
+          'AdminID': _adminId.text.trim(),
+          'AdminName': _usernameController.text.trim(),
+          'AdminEmail': _emailController.text.trim(),
+          'AdminPassword': _passwordController.text.trim(),
+        });
 
-          print('User signed up: ${userCredential.user}');
-        }
+        print('User signed up: ${userCredential.user}');
 
         // Navigate to login page after successful sign up
         Navigator.pop(context);
@@ -73,6 +66,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains unchanged
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

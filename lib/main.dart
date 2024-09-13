@@ -1,3 +1,4 @@
+import 'package:fall_detection_web_admin/src/deletepatient.dart';
 import 'package:fall_detection_web_admin/src/loginpage.dart';
 import 'package:fall_detection_web_admin/src/page1.dart';
 import 'package:fall_detection_web_admin/src/page2.dart';
@@ -10,7 +11,6 @@ import 'package:fall_detection_web_admin/src/deleteUserAccount.dart';
 import 'package:fall_detection_web_admin/src/registrationExistingUser.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -24,33 +24,9 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  Future<void> setupFirebaseMessaging(BuildContext context) async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    // Handle incoming messages when the app is in the foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Received a foreground message: ${message.notification?.title}');
-
-      // Show a SnackBar with notification details
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${message.notification?.title}: ${message.notification?.body}',
-          ),
-        ),
-      );
-    });
-
-    // Handle messages that cause the app to open from the background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Opened app from notification: ${message.data}');
-      // Handle the message if needed
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    setupFirebaseMessaging(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -151,6 +127,19 @@ class MyApp extends StatelessWidget {
                 );
               },
             );
+          case '/deletepatient':
+            return PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const DeletePatient(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeThroughTransition(
+                  animation: animation,
+                  secondaryAnimation: secondaryAnimation,
+                  child: child,
+                );
+              },
+            );
           case '/page6':
             return PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
@@ -205,3 +194,4 @@ class FadeThroughTransition extends StatelessWidget {
     );
   }
 }
+

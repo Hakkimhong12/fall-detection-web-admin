@@ -152,9 +152,9 @@ class _Page5State extends State<Page5> {
             children: [
               const SizedBox(height: 50.0),
               _buildSidebarButton('AIカメラ管理画面', '/page1'),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
               _buildSidebarButton('カメラの全画面表示', '/page2'),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
               _buildSidebarButton('アラートメール確認者登録', '/page4'),
               const SizedBox(height: 30),
               _buildSidebarButton('既存ユーザーの患者登録', '/registrationExistingUser'),
@@ -165,12 +165,14 @@ class _Page5State extends State<Page5> {
                       fontWeight: FontWeight.bold,
                       fontSize: 18)),
               const SizedBox(height: 30),
-              _buildSidebarButton('ユーザーアカウント削除', '/deleteUserAccount'),
+              _buildSidebarButton('ユーザー情報管理', '/deleteUserAccount'),
+              const SizedBox(height: 30),
+              _buildSidebarButton('患者情報管理', '/deletepatient'),
               const SizedBox(height: 30),
               _buildSidebarButton('初期設定', '/page6'),
               const SizedBox(height: 30),
               _buildSidebarButton('転倒検知履歴', '/notification'),
-              const SizedBox(height: 150),
+              const SizedBox(height: 100),
               const Padding(
                 padding: EdgeInsets.only(left: 110),
                 child: Text(
